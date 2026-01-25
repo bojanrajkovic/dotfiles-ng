@@ -9,6 +9,7 @@
 "cargo:du-dust" = "latest"
 "cargo:eza" = "latest"
 "cargo:fd-find" = "latest"
+"cargo:fend" = "latest"
 "cargo:hexyl" = "latest"
 "cargo:hyperfine" = "latest"
 "cargo:ripgrep" = "latest"
@@ -25,4 +26,9 @@ node = "latest"
 "npm:@anthropic-ai/claude-code" = "latest"
 rust = "stable"
 usage = "latest"
+uv = "latest"
 yq = "latest"
+yt-dlp = "latest"
+
+[settings]
+experimental = true
