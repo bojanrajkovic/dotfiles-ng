@@ -49,5 +49,8 @@ export FZF_DEFAULT_OPTS="
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
+# Only use uv-managed Python
+export UV_MANAGED_PYTHON=1
+
 # zsh-syntax-highlighting - must be last
 source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
