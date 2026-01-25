@@ -12,8 +12,16 @@ bindkey -e
 # Remove path separator from WORDCHARS
 WORDCHARS=${WORDCHARS//[\/]}
 
-# Initialize mise and starship
+# Initialize mise first (sets up PATH)
 eval "$(~/.local/bin/mise activate zsh)"
+
+# Initialize completion system after mise sets up PATH
+autoload -Uz compinit && compinit
+
+# Now load completions (usage CLI will be in PATH)
+eval "$(~/.local/bin/mise completion zsh)"
+
+# Initialize starship
 eval "$(starship init zsh)"
 
 # Auto-attach to Zellij on SSH/Mosh login
