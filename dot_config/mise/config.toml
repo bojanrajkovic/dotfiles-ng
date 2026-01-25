@@ -19,6 +19,7 @@
 chezmoi = "latest"
 fzf = "latest"
 go = "1.25"
+"go:github.com/open-cli-collective/cpm/cmd/cpm" = "latest"
 jq = "latest"
 k9s = "latest"
 kubectl = "latest"
