@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [],
+    "deny": [],
+    "ask": []
+  },
+  "model": "sonnet",
+  "statusLine": {
+    "type": "command",
+    "command": "npx -y ccstatusline@latest",
+    "padding": 0
+  },
+  "enabledPlugins": {
+  },
+  "alwaysThinkingEnabled": true
+}
