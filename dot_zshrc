@@ -1,0 +1,22 @@
+#!/usr/bin/env zsh
+
+# History
+setopt HIST_IGNORE_ALL_DUPS
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+
+# Emacs keybindings
+bindkey -e
+
+# Remove path separator from WORDCHARS
+WORDCHARS=${WORDCHARS//[\/]}
+
+# Initialize mise and starship
+eval "$(~/.local/bin/mise activate zsh)"
+eval "$(starship init zsh)"
+
+# Auto-attach to Zellij on SSH/Mosh login
+if [[ -z "$ZELLIJ" ]] && [[ -n "$SSH_CONNECTION" || -n "$SSH_TTY" ]]; then
+    zellij --layout dev attach --create main
+fi

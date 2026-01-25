@@ -1,0 +1,8 @@
+[tools]
+"aqua:1password/cli" = "v2.32.0"
+"aqua:cli/cli" = "latest"
+"cargo:starship" = "latest"
+"cargo:zellij" = "latest"
+chezmoi = "latest"
+go = "1.25"
+rust = "stable"
