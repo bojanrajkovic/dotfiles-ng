@@ -20,3 +20,8 @@ eval "$(starship init zsh)"
 if [[ -z "$ZELLIJ" ]] && [[ -n "$SSH_CONNECTION" || -n "$SSH_TTY" ]]; then
     zellij --layout dev attach --create main
 fi
+
+alias ls='eza'
+alias cat='bat -p'
+alias find='fd'
+alias grep='rg'
