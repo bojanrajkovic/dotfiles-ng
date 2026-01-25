@@ -27,6 +27,7 @@ alias cat='bat -p'
 alias find='fd'
 alias grep='rg'
 alias ccw='claude --allow-dangerously-skip-permissions'
+alias docker='podman'
 
 bindkey "^[[3~" delete-char           # Delete
 bindkey "^[[H" beginning-of-line      # Home
@@ -52,6 +53,9 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
 # Only use uv-managed Python
 export UV_MANAGED_PYTHON=1
+
+# Tell Docker-using things to use Podman
+export DOCKER_HOST=unix:///run/user/1000/podman/podman.sock
 
 # zsh-syntax-highlighting - must be last
 source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
