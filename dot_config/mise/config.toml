@@ -8,6 +8,7 @@
 "cargo:difftastic" = "latest"
 "cargo:du-dust" = "latest"
 "cargo:eza" = "latest"
+"cargo:fd-find" = "latest"
 "cargo:hexyl" = "latest"
 "cargo:hyperfine" = "latest"
 "cargo:ripgrep" = "latest"

@@ -30,6 +30,12 @@ bindkey "^[[3~" delete-char           # Delete
 bindkey "^[[H" beginning-of-line      # Home
 bindkey "^[[F" end-of-line            # End
 
+# zsh-autosuggestions - suggestions from history
+source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+# zsh-syntax-highlighting - must be last
+source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
 # fzf - fuzzy finder keybindings
 eval "$(fzf --zsh)"
 
