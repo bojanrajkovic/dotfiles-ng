@@ -19,6 +19,7 @@ eval "$(starship init zsh)"
 # Auto-attach to Zellij on SSH/Mosh login
 if [[ -z "$ZELLIJ" ]] && [[ -n "$SSH_CONNECTION" || -n "$SSH_TTY" ]]; then
     zellij --layout dev attach --create main
+    exit
 fi
 
 alias ls='eza'
