@@ -25,3 +25,7 @@ alias ls='eza'
 alias cat='bat -p'
 alias find='fd'
 alias grep='rg'
+
+bindkey "^[[3~" delete-char           # Delete
+bindkey "^[[H" beginning-of-line      # Home
+bindkey "^[[F" end-of-line            # End
