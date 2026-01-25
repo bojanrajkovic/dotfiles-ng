@@ -33,9 +33,6 @@ bindkey "^[[F" end-of-line            # End
 # zsh-autosuggestions - suggestions from history
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 
-# zsh-syntax-highlighting - must be last
-source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-
 # fzf - fuzzy finder keybindings
 eval "$(fzf --zsh)"
 
@@ -50,3 +47,6 @@ export FZF_DEFAULT_OPTS="
 # Use fd instead of find for fzf (faster, respects .gitignore)
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+
+# zsh-syntax-highlighting - must be last
+source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
