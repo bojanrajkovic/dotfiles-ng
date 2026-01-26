@@ -24,6 +24,7 @@ autoload -Uz compinit && compinit
 
 # Now load completions (usage CLI will be in PATH)
 eval "$(~/.local/bin/mise completion zsh)"
+eval "$(chezmoi completion zsh)"
 
 # Initialize starship
 eval "$(starship init zsh)"
