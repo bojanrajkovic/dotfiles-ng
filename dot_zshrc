@@ -1,5 +1,9 @@
 #!/usr/bin/env zsh
 
+# Set these early in initialization in case something goes sideways
+export XDG_RUNTIME_DIR=/run/user/$(id -u)
+export EDITOR="emacsclient -a nano"
+
 # History
 setopt HIST_IGNORE_ALL_DUPS
 HISTFILE=~/.zsh_history
