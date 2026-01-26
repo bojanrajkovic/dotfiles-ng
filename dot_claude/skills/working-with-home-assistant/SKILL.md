@@ -76,7 +76,7 @@ You are now in Home Assistant expert mode. You have direct access to query and c
 3. `~/.ha_token`
 4. `${CLAUDE_PLUGIN_ROOT}/.ha_token`
 
-**Home Assistant URL**: Default is `http://homeassistant.local:8123`. If this doesn't work, use AskUserQuestion to get the correct URL.
+**Home Assistant URL**: `https://homeassistant.services.coderinserepeat.com`
 
 **Project directory**: `/Users/brajkovic/Sync/Working/projects/home-assistant/`
 
@@ -100,19 +100,19 @@ curl -s -X POST \
   -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
   -H "Content-Type: application/json" \
   -d '{"template": "{{ areas() | list }}"}' \
-  http://homeassistant.local:8123/api/template
+  https://homeassistant.services.coderinserepeat.com/api/template
 
 # Step 2: Get all entities in a specific area (e.g., "office")
 curl -s -X POST \
   -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
   -H "Content-Type: application/json" \
   -d '{"template": "{{ area_entities(\"office\") | list }}"}' \
-  http://homeassistant.local:8123/api/template
+  https://homeassistant.services.coderinserepeat.com/api/template
 
 # Step 3: Get states for those entities
 # Use the entity list from step 2 to filter /api/states
 curl -s -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
-  http://homeassistant.local:8123/api/states | \
+  https://homeassistant.services.coderinserepeat.com/api/states | \
   jq --argjson entities '["sensor.office_sensor_temperature", "sensor.office_sensor_humidity", ...]' \
   '[.[] | select([.entity_id] | inside($entities))]'
 ```
@@ -136,12 +136,12 @@ Use pattern matching only when:
 ```bash
 # Find all humidity sensors
 curl -s -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
-  http://homeassistant.local:8123/api/states | \
+  https://homeassistant.services.coderinserepeat.com/api/states | \
   jq '.[] | select(.attributes.device_class == "humidity")'
 
 # Find entities by name pattern
 curl -s -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
-  http://homeassistant.local:8123/api/states | \
+  https://homeassistant.services.coderinserepeat.com/api/states | \
   jq '.[] | select(.entity_id | contains("office"))'
 ```
 
@@ -181,7 +181,7 @@ for path in token_paths:
 
 # Push to Home Assistant
 response = requests.post(
-    'http://homeassistant.local:8123/api/config/automation/config/automation_id',
+    'https://homeassistant.services.coderinserepeat.com/api/config/automation/config/automation_id',
     headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
     json=auto
 )
@@ -198,7 +198,7 @@ To update an existing automation:
 **Finding automation ID**:
 ```bash
 curl -s -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
-  http://homeassistant.local:8123/api/states | \
+  https://homeassistant.services.coderinserepeat.com/api/states | \
   jq '.[] | select(.entity_id | startswith("automation.")) |
   {entity_id: .entity_id, id: .attributes.id, name: .attributes.friendly_name}'
 ```
@@ -234,7 +234,7 @@ curl -X POST \
   -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
   -H "Content-Type: application/json" \
   -d '{"entity_id": "switch.office_humidifier_sonoff_s31_relay"}' \
-  http://homeassistant.local:8123/api/services/switch/turn_on
+  https://homeassistant.services.coderinserepeat.com/api/services/switch/turn_on
 ```
 
 ### 7. Find Devices by Type
@@ -379,11 +379,11 @@ ENTITIES=$(curl -s -X POST \
   -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
   -H "Content-Type: application/json" \
   -d "{\"template\": \"{{ area_entities('$AREA') | list }}\"}" \
-  http://homeassistant.local:8123/api/template)
+  https://homeassistant.services.coderinserepeat.com/api/template)
 
 # Get states for those entities
 curl -s -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
-  http://homeassistant.local:8123/api/states | \
+  https://homeassistant.services.coderinserepeat.com/api/states | \
   jq --argjson entities "$ENTITIES" \
   '[.[] | select([.entity_id] | inside($entities))] |
   .[] | "\(.entity_id) | \(.state) | \(.attributes.friendly_name)"' | \
@@ -393,7 +393,7 @@ curl -s -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/h
 ### Query entities by pattern (fallback)
 ```bash
 curl -s -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
-  http://homeassistant.local:8123/api/states | \
+  https://homeassistant.services.coderinserepeat.com/api/states | \
   jq -r '.[] | select(.entity_id | contains("humidity")) |
   "\(.entity_id) | \(.state)\(.attributes.unit_of_measurement // "") | \(.attributes.friendly_name)"' | \
   column -t -s '|'
@@ -402,7 +402,7 @@ curl -s -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/h
 ### List all automations
 ```bash
 curl -s -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
-  http://homeassistant.local:8123/api/states | \
+  https://homeassistant.services.coderinserepeat.com/api/states | \
   jq -r '.[] | select(.entity_id | startswith("automation.")) |
   "\(.entity_id) | \(.state) | \(.attributes.friendly_name) | \(.attributes.last_triggered // "never")"' | \
   column -t -s '|'
@@ -412,7 +412,7 @@ curl -s -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/h
 ```bash
 curl -X POST \
   -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
-  http://homeassistant.local:8123/api/services/automation/reload
+  https://homeassistant.services.coderinserepeat.com/api/services/automation/reload
 ```
 
 ## Response Style

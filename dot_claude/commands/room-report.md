@@ -27,7 +27,7 @@ Generate a comprehensive, beautifully formatted status report for a room in your
 
 ## Configuration
 
-**Home Assistant URL**: `http://homeassistant.local:8123`
+**Home Assistant URL**: `https://homeassistant.services.coderinserepeat.com`
 
 **Token locations** (check in order):
 1. `/Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token`
@@ -47,18 +47,18 @@ AREAS=$(curl -s -X POST \
   -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
   -H "Content-Type: application/json" \
   -d '{"template": "{{ areas() | list }}"}' \
-  http://homeassistant.local:8123/api/template)
+  https://homeassistant.services.coderinserepeat.com/api/template)
 
 # Get entities for the matched area
 ENTITIES=$(curl -s -X POST \
   -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
   -H "Content-Type: application/json" \
   -d "{\"template\": \"{{ area_entities('$AREA') | list }}\"}" \
-  http://homeassistant.local:8123/api/template)
+  https://homeassistant.services.coderinserepeat.com/api/template)
 
 # Get current states for those entities
 curl -s -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
-  http://homeassistant.local:8123/api/states | \
+  https://homeassistant.services.coderinserepeat.com/api/states | \
   jq --argjson entities "$ENTITIES" '[.[] | select([.entity_id] | inside($entities))]'
 ```
 
@@ -81,7 +81,7 @@ Each state object from `/api/states` contains both the entity ID and human-reada
 ```bash
 # Example: Extract friendly name and state for a sensor
 curl -s -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
-  http://homeassistant.local:8123/api/states | \
+  https://homeassistant.services.coderinserepeat.com/api/states | \
   jq --argjson entities "$ENTITIES" \
   '[.[] | select([.entity_id] | inside($entities))] |
    .[] | {
@@ -144,7 +144,7 @@ TIMESTAMP=$(date -u -v-2H +"%Y-%m-%dT%H:%M:%S")
 
 # Fetch and sample history for a sensor
 curl -s -H "Authorization: Bearer $(cat /Users/brajkovic/Sync/Working/projects/home-assistant/.ha_token)" \
-  "http://homeassistant.local:8123/api/history/period/${TIMESTAMP}?filter_entity_id=sensor.office_sensor_temperature" | \
+  "https://homeassistant.services.coderinserepeat.com/api/history/period/${TIMESTAMP}?filter_entity_id=sensor.office_sensor_temperature" | \
   jq -r 'if . and .[0] then [.[0][] | select(.state | test("^[0-9.]+$")) | .state | tonumber] else [] end' | \
   jq 'if length > 20 then . as $arr | [range(0; length; (length / 20 | floor + 1))] | map($arr[.]) else . end'
 ```
