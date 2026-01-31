@@ -4,6 +4,10 @@
 export XDG_RUNTIME_DIR=/run/user/$(id -u)
 export EDITOR="emacsclient -a nano"
 
+# Disable Claude Code auto-updater, but enable plugin updates
+export DISABLE_AUTOUPDATER=true
+export FORCE_AUTOUPDATE_PLUGINS=true
+
 # History
 setopt HIST_IGNORE_ALL_DUPS
 HISTFILE=~/.zsh_history
@@ -31,7 +35,7 @@ eval "$(starship init zsh)"
 
 # Auto-attach to Zellij on SSH/Mosh login
 if [[ -z "$ZELLIJ" ]] && [[ -n "$SSH_CONNECTION" || -n "$SSH_TTY" ]]; then
-    zellij --layout dev attach --create main
+    zellij attach --create main
     exit
 fi
 
