@@ -108,6 +108,8 @@ files to help you remember. You should prefer to write things in Markdown.
 - Use Grep tools across directories to find relevant context in files
 - For finding specific files by name/pattern, use Glob tool
 - For syntax-aware code searches, use ast-grep (`sg`) when available
+- Your environment likely uses `fd` instead of `find` and `ripgrep` instead of
+  `grep` -- adapt your commandline arguments.
 
 ## Code Projects
 
