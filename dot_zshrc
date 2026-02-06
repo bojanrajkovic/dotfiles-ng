@@ -35,7 +35,14 @@ eval "$(starship init zsh)"
 
 # Auto-attach to Zellij on SSH/Mosh login
 if [[ -z "$ZELLIJ" ]] && [[ -n "$SSH_CONNECTION" || -n "$SSH_TTY" ]]; then
-    zellij attach --create main
+    # Find a session that's not 'main'
+    local session=$(zellij list-sessions --no-formatting 2>/dev/null | grep -v '^main' | head -1 | cut -d' ' -f1)
+    if [[ -n "$session" ]]; then
+        zellij attach "$session"
+    else
+        # Only 'main' exists or no sessions - create a new session
+        zellij
+    fi
     exit
 fi
 
