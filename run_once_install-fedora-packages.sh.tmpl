@@ -1,0 +1,60 @@
+#!/bin/bash
+{{ if ne .chezmoi.osRelease.id "fedora" -}}
+echo "Not Fedora, skipping package installation"
+exit 0
+{{ end -}}
+
+set -euo pipefail
+
+echo "Installing Fedora packages..."
+
+sudo dnf install -y \
+    zsh \
+    emacs \
+    htop \
+    fastfetch \
+    mosh \
+    podman \
+    podman-docker \
+    syncthing \
+    tailscale \
+    perl-devel \
+    perl-core \
+    perl-FindBin \
+    openssl-devel
+
+echo "Installing development tools..."
+sudo dnf group install -y "Development Tools"
+
+echo "Installing Playwright/Chromium system dependencies..."
+sudo dnf install -y \
+    nss \
+    nspr \
+    atk \
+    at-spi2-atk \
+    cups-libs \
+    libdrm \
+    libXcomposite \
+    libXdamage \
+    libXrandr \
+    mesa-libgbm \
+    pango \
+    alsa-lib \
+    libxkbcommon \
+    libxcb \
+    libX11-xcb \
+    libX11 \
+    libXext \
+    libXcursor \
+    libXfixes \
+    libXi \
+    gtk3 \
+    cairo-gobject
+
+# Run Playwright's own dependency installer as a fallback/catch-all
+if command -v npx &>/dev/null; then
+    echo "Running npx playwright install-deps..."
+    npx playwright install-deps || echo "Warning: playwright install-deps failed, system deps were installed manually above"
+fi
+
+echo "Fedora package installation complete!"
