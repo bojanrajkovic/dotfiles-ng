@@ -1,0 +1,21 @@
+#!/bin/bash
+{{ if ne .chezmoi.os "linux" -}}
+echo "Not Linux, skipping linger setup"
+exit 0
+{{ end -}}
+
+# Enable systemd linger for the current user
+# This allows user services to run without an active login session
+
+if ! command -v loginctl &>/dev/null; then
+    echo "loginctl not found, skipping linger setup"
+    exit 0
+fi
+
+if loginctl show-user "$USER" 2>/dev/null | grep -q "Linger=yes"; then
+    echo "Linger already enabled for $USER"
+    exit 0
+fi
+
+echo "Enabling linger for $USER..."
+loginctl enable-linger "$USER"
