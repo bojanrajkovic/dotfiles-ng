@@ -1,9 +1,9 @@
 [credential "https://github.com"]
 	helper = 
-	helper = !/home/brajkovic/.local/share/mise/installs/aqua-cli-cli/2.86.0/gh_2.86.0_linux_amd64/bin/gh auth git-credential
+	helper = !gh auth git-credential
 [credential "https://gist.github.com"]
-	helper = 
-	helper = !/home/brajkovic/.local/share/mise/installs/aqua-cli-cli/2.86.0/gh_2.86.0_linux_amd64/bin/gh auth git-credential
+	helper =
+	helper = !gh auth git-credential
 [user]
 	name = Bojan Rajkovic
 	email = brajkovic@coderinserepeat.com
