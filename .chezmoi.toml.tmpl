@@ -1,3 +1,12 @@
+{{- $profile := promptStringOnce . "profile" "Profile (personal/work)" -}}
+
+[data]
+  profile = {{ $profile | quote }}
+{{ if eq $profile "personal" -}}
+  sshPrivateKeyItem = "SSH Key - MiniPC Private"
+  sshPublicKeyItem = "SSH Key - MiniPC Public"
+{{ end -}}
+
 [onepassword]
-mode = "account"
-prompt = true
+  mode = "account"
+  prompt = true
