@@ -1,18 +1,27 @@
 {
   "env": {
-    "ENABLE_TOOL_SEARCH": "true"
+    "ENABLE_TOOL_SEARCH": "true",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "permissions": {
     "allow": [],
     "deny": [],
     "ask": []
   },
+  "model": "opus",
   "statusLine": {
     "type": "command",
     "command": "npx -y ccstatusline@latest",
     "padding": 0
   },
-  "enabledPlugins": {},
+  "enabledPlugins": {
+    "explanatory-output-style@claude-plugins-official": true,
+    "gh-cli@trailofbits": true
+  },
   "alwaysThinkingEnabled": true,
-  "promptSuggestionEnabled": false
+  "promptSuggestionEnabled": false,
+  "autoUpdatesChannel": "stable",
+  "minimumVersion": "2.1.19",
+  "skipDangerousModePermissionPrompt": true,
+  "effortLevel": "medium"
 }
