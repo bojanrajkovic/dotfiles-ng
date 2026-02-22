@@ -84,3 +84,5 @@ export UV_MANAGED_PYTHON=1
 
 # zsh-syntax-highlighting - must be last
 source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1

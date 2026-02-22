@@ -14,8 +14,6 @@ sudo dnf install -y \
     htop \
     fastfetch \
     mosh \
-    podman \
-    podman-docker \
     syncthing \
     tailscale \
     perl-devel \
@@ -24,9 +22,6 @@ sudo dnf install -y \
     openssl-devel \
     tmux \
     units
-
-echo "Installing development tools..."
-sudo dnf group install -y "Development Tools"
 
 echo "Installing Playwright/Chromium system dependencies..."
 sudo dnf install -y \

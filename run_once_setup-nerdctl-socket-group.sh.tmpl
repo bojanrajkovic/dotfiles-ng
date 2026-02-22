@@ -1,0 +1,150 @@
+#!/bin/bash
+{{ if ne .chezmoi.osRelease.id "fedora" -}}
+echo "Not Fedora, skipping nerdctl/buildkitd setup"
+exit 0
+{{ end -}}
+
+set -euo pipefail
+
+# Set up nerdctl + buildkitd for use with k3s/containerd without interactive sudo.
+#
+# nerdctl requires root to use a system containerd socket (it switches to rootless
+# mode when uid != 0). Since nerdctl and buildkitd are installed by mise and are
+# not on sudo's PATH, we symlink both into /usr/local/bin and add NOPASSWD rules.
+#
+# buildkitd is configured to use the k3s containerd socket and runs as a
+# systemd service.
+
+# --- Helper: symlink a mise-managed binary into /usr/local/bin ---
+# Used for binaries run via sudo (SELinux: sudo_t can exec user_home_t).
+# Status messages go to stderr so stdout can be captured for the path.
+link_mise_bin() {
+    local tool="$1"
+    local dest="/usr/local/bin/$tool"
+    local src
+    src=$(mise which "$tool" 2>/dev/null || true)
+    if [ -z "$src" ]; then
+        echo "ERROR: $tool not found via mise. Run: mise install $tool" >&2
+        exit 1
+    fi
+    if [ "$(readlink -f "$dest" 2>/dev/null)" != "$src" ]; then
+        echo "Symlinking $src -> $dest..." >&2
+        sudo ln -sf "$src" "$dest"
+    else
+        echo "Symlink $dest already points to $src" >&2
+    fi
+    echo "$dest"
+}
+
+# --- Helper: copy a mise-managed binary into /usr/local/bin ---
+# Used for binaries run by systemd services (SELinux: init_t cannot exec
+# user_home_t, but can exec bin_t which /usr/local/bin files get by default).
+copy_mise_bin() {
+    local tool="$1"
+    local dest="/usr/local/bin/$tool"
+    local src
+    src=$(mise which "$tool" 2>/dev/null || true)
+    if [ -z "$src" ]; then
+        echo "ERROR: $tool not found via mise. Run: mise install $tool" >&2
+        exit 1
+    fi
+    # Copy if missing or source is newer
+    if [ ! -f "$dest" ] || [ "$src" -nt "$dest" ]; then
+        echo "Copying $src -> $dest..." >&2
+        sudo cp "$src" "$dest"
+        sudo chmod 755 "$dest"
+    else
+        echo "$dest already up to date" >&2
+    fi
+    echo "$dest"
+}
+
+# --- Helper: add NOPASSWD sudoers rule ---
+add_sudoers() {
+    local tag="$1"
+    local bin="$2"
+    local file="/etc/sudoers.d/$tag"
+    if [ ! -f "$file" ]; then
+        echo "Adding NOPASSWD sudoers rule for $bin..."
+        echo "$USER ALL=(ALL) NOPASSWD: $bin" | sudo tee "$file" > /dev/null
+        sudo chmod 440 "$file"
+    else
+        echo "Sudoers rule already installed at $file"
+    fi
+}
+
+# --- 1. nerdctl ---
+NERDCTL=$(link_mise_bin nerdctl)
+add_sudoers nerdctl "$NERDCTL"
+
+# --- 2. buildkitd + buildctl (copied, not symlinked, for SELinux bin_t context) ---
+BUILDKITD=$(copy_mise_bin buildkitd)
+copy_mise_bin buildctl > /dev/null
+
+# --- 3. buildkitd systemd service ---
+SERVICE_FILE=/etc/systemd/system/buildkitd.service
+if [ ! -f "$SERVICE_FILE" ]; then
+    echo "Installing buildkitd systemd service..."
+    sudo tee "$SERVICE_FILE" > /dev/null <<EOF
+[Unit]
+Description=BuildKit image builder daemon
+After=k3s.service
+Requires=k3s.service
+
+[Service]
+Type=simple
+ExecStart=$BUILDKITD \\
+  --addr unix:///run/buildkit/buildkitd.sock \\
+  --containerd-worker-addr /run/k3s/containerd/containerd.sock \\
+  --containerd-worker-namespace k8s.io
+# Allow members of the 'containerd' group to use the buildkit socket
+ExecStartPost=/bin/sh -c 'until [ -S /run/buildkit/buildkitd.sock ]; do sleep 0.1; done; chgrp containerd /run/buildkit/buildkitd.sock; chmod g+rw /run/buildkit/buildkitd.sock'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    sudo systemctl daemon-reload
+    sudo systemctl enable --now buildkitd
+else
+    echo "buildkitd service already installed"
+fi
+
+# --- 4. containerd socket group (for ctr and buildkitd worker access) ---
+GROUP=containerd
+
+if ! getent group "$GROUP" &>/dev/null; then
+    echo "Creating group '$GROUP'..."
+    sudo groupadd -r "$GROUP"
+else
+    echo "Group '$GROUP' already exists"
+fi
+
+if ! id -nG "$USER" | grep -qw "$GROUP"; then
+    echo "Adding $USER to group '$GROUP'..."
+    sudo usermod -aG "$GROUP" "$USER"
+    echo "NOTE: Log out and back in (or run 'newgrp $GROUP') for group change to take effect"
+else
+    echo "$USER is already in group '$GROUP'"
+fi
+
+DROPIN_DIR=/etc/systemd/system/k3s.service.d
+DROPIN_FILE="$DROPIN_DIR/socket-group.conf"
+if [ ! -f "$DROPIN_FILE" ]; then
+    echo "Installing k3s socket-group drop-in..."
+    sudo mkdir -p "$DROPIN_DIR"
+    sudo tee "$DROPIN_FILE" > /dev/null <<'EOF'
+[Service]
+ExecStartPost=/bin/sh -c 'until [ -S /run/k3s/containerd/containerd.sock ]; do sleep 0.1; done; chgrp containerd /run/k3s/containerd/containerd.sock; chmod g+rw /run/k3s/containerd/containerd.sock'
+EOF
+    sudo systemctl daemon-reload
+    if systemctl is-active --quiet k3s; then
+        echo "Restarting k3s to apply socket-group drop-in..."
+        sudo systemctl restart k3s
+    fi
+else
+    echo "k3s socket-group drop-in already installed"
+fi
+
+echo "Setup complete."
+echo "  nerdctl alias: sudo nerdctl --address /run/k3s/containerd/containerd.sock --namespace k8s.io"
