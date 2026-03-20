@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# mise-use-os: Install a mise tool and add it to the OS-specific config template.
+#
+# Usage:
+#   mise-use-os <tool[@version]> [tool[@version] ...]
+#
+# This runs `mise use -g <tool>`, then moves the new entry from the shared
+# config (~/.config/mise/config.toml) into the OS-specific chezmoi template
+# (~/.local/share/chezmoi/.chezmoitemplates/mise_config_{linux,darwin}).
+#
+# For cross-platform tools, just use `mise use -g <tool>` directly —
+# the shared config supports normal `chezmoi re-add`.
+
+if [[ $# -eq 0 ]]; then
+    echo "Usage: mise-use-os <tool[@version]> [tool[@version] ...]"
+    echo ""
+    echo "Installs tools via mise and adds them to the OS-specific chezmoi template."
+    echo "For cross-platform tools, use 'mise use -g <tool>' instead."
+    exit 1
+fi
+
+OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+CHEZMOI_SRC="${XDG_DATA_HOME:-$HOME/.local/share}/chezmoi"
+TEMPLATE="$CHEZMOI_SRC/.chezmoitemplates/mise_config_${OS}"
+SHARED_CONFIG="$HOME/.config/mise/config.toml"
+
+if [[ ! -f "$TEMPLATE" ]]; then
+    echo "Error: No OS template found at $TEMPLATE"
+    exit 1
+fi
+
+# Snapshot the shared config before mise modifies it
+before=$(mktemp)
+cp "$SHARED_CONFIG" "$before"
+
+# Run mise use -g with all arguments
+mise use -g "$@"
+
+# Find new lines added to the shared config
+new_entries=$(diff "$before" "$SHARED_CONFIG" | grep '^> ' | sed 's/^> //' | grep -v '^\[' || true)
+rm -f "$before"
+
+if [[ -z "$new_entries" ]]; then
+    echo "Warning: No new entries detected in $SHARED_CONFIG"
+    echo "The tool(s) may already be listed. Check $TEMPLATE manually."
+    exit 0
+fi
+
+# Append new entries to the OS template (before any trailing blank lines)
+# Find the last non-empty line to insert after
+while IFS= read -r entry; do
+    # Skip if already present
+    key=$(echo "$entry" | cut -d= -f1 | xargs)
+    if grep -qF "$key" "$TEMPLATE" 2>/dev/null; then
+        echo "Skipping '$key' — already in $TEMPLATE"
+        continue
+    fi
+
+    # Append to [tools] section
+    echo "$entry" >> "$TEMPLATE"
+    echo "Added to $(basename "$TEMPLATE"): $entry"
+done <<< "$new_entries"
+
+# Remove the entries from the shared config so they don't duplicate
+while IFS= read -r entry; do
+    key=$(echo "$entry" | cut -d= -f1 | xargs)
+    # Remove the line from shared config
+    grep -vF "$key" "$SHARED_CONFIG" > "$SHARED_CONFIG.tmp" || true
+    mv "$SHARED_CONFIG.tmp" "$SHARED_CONFIG"
+done <<< "$new_entries"
+
+# Re-add the shared config to chezmoi
+chezmoi re-add "$SHARED_CONFIG"
+
+echo ""
+echo "Done. Run 'chezmoi apply' to sync, or commit changes in $CHEZMOI_SRC"

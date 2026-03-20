@@ -1,0 +1,3 @@
+[tools]
+"aqua:containerd/nerdctl" = { version = "latest", postinstall = "sudo ln -sf $MISE_TOOL_INSTALL_PATH/nerdctl /usr/local/bin/nerdctl" }
+"aqua:moby/buildkit" = { version = "latest", postinstall = "sudo ln -sf $MISE_TOOL_INSTALL_PATH/bin/buildctl /usr/local/bin/buildctl" }

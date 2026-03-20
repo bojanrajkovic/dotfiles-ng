@@ -26,8 +26,6 @@ go = "1.25"
 jq = "latest"
 k9s = "latest"
 kubectl = "latest"
-"aqua:containerd/nerdctl" = { version = "latest", postinstall = "sudo ln -sf $MISE_TOOL_INSTALL_PATH/nerdctl /usr/local/bin/nerdctl" }
-"aqua:moby/buildkit" = { version = "latest", postinstall = "sudo ln -sf $MISE_TOOL_INSTALL_PATH/bin/buildctl /usr/local/bin/buildctl" }
 node = "latest"
 "npm:@anthropic-ai/claude-code" = "latest"
 "npm:agent-browser" = "latest"
@@ -37,7 +35,7 @@ uv = "latest"
 yq = "latest"
 yt-dlp = "latest"
 opentofu = "1.11.5"
-semgrep = "latest"
 
 [settings]
 experimental = true
+includes = ["~/.config/mise/config.os.toml"]

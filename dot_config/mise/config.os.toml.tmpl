@@ -1,0 +1,6 @@
+{{- /* Edit .chezmoitemplates/mise_config_{linux,darwin} directly, then chezmoi apply */ -}}
+{{- if eq .chezmoi.os "darwin" -}}
+{{- include ".chezmoitemplates/mise_config_darwin" -}}
+{{- else -}}
+{{- include ".chezmoitemplates/mise_config_linux" -}}
+{{- end -}}
