@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 
+stty -ixon
+
 # Set these early in initialization in case something goes sideways
 export XDG_RUNTIME_DIR=/run/user/$(id -u)
 export EDITOR="emacsclient -a nano"
