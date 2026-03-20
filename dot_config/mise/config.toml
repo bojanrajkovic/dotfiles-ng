@@ -36,7 +36,5 @@ yq = "latest"
 yt-dlp = "latest"
 opentofu = "1.11.5"
 
-includes = ["~/.config/mise/config.os.toml"]
-
 [settings]
 experimental = true
