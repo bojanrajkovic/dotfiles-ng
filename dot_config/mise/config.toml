@@ -1,5 +1,5 @@
 [tools]
-"aqua:1password/cli" = "v2.32.0"
+"aqua:1password/cli" = "latest"
 "aqua:aws/aws-cli" = "latest"
 "aqua:cli/cli" = "latest"
 "aqua:pranshuparmar/witr" = "latest"
@@ -26,8 +26,8 @@ go = "1.25"
 jq = "latest"
 k9s = "latest"
 kubectl = "latest"
-nerdctl = "latest"
-"aqua:moby/buildkit" = "latest"
+"aqua:containerd/nerdctl" = { version = "latest", postinstall = "sudo ln -sf $MISE_TOOL_INSTALL_PATH/nerdctl /usr/local/bin/nerdctl" }
+"aqua:moby/buildkit" = { version = "latest", postinstall = "sudo ln -sf $MISE_TOOL_INSTALL_PATH/bin/buildctl /usr/local/bin/buildctl" }
 node = "latest"
 "npm:@anthropic-ai/claude-code" = "latest"
 "npm:agent-browser" = "latest"
@@ -36,6 +36,8 @@ usage = "latest"
 uv = "latest"
 yq = "latest"
 yt-dlp = "latest"
+opentofu = "1.11.5"
+semgrep = "latest"
 
 [settings]
 experimental = true
