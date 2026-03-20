@@ -2,4 +2,12 @@
 .ssh/id_ed25519
 .ssh/id_ed25519.pub
 .ssh/allowed_signers
+.ha_token
+setup-samba.sh
+{{ end }}
+
+{{ if ne .chezmoi.os "linux" }}
+run_once_install-fedora-packages.sh
+run_once_enable-linger.sh
+run_once_setup-nerdctl-socket-group.sh
 {{ end }}
