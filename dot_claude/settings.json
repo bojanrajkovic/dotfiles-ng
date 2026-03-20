@@ -1,27 +1,72 @@
 {
   "env": {
     "ENABLE_TOOL_SEARCH": "true",
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH": "/usr/lib64/chromium-browser/headless_shell",
+    "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "OTEL_METRICS_EXPORTER": "otlp",
+    "OTEL_LOGS_EXPORTER": "otlp",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/json",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "https://alloy.services.coderinserepeat.com:4318",
+    "OTEL_RESOURCE_ATTRIBUTES": "environment=homelab,host=workstation",
+    "OTEL_METRICS_INCLUDE_VERSION": "true",
+    "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "cumulative"
   },
   "permissions": {
-    "allow": [],
+    "allow": [
+      "Bash(mise x:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:oxc.rs)",
+      "mcp__plugin_serena_serena__list_dir",
+      "mcp__plugin_serena_serena__find_file",
+      "mcp__plugin_serena_serena__activate_project",
+      "Bash(fd:*)",
+      "WebFetch(domain:pnpm.io)",
+      "WebFetch(domain:antfu.me)",
+      "WebFetch(domain:oxc-project.github.io)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "mcp__plugin_serena_serena__read_file",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(test:*)",
+      "WebFetch(domain:fastify.dev)",
+      "WebFetch(domain:vitest.dev)",
+      "Bash(git rev-parse:*)"
+    ],
     "deny": [],
     "ask": []
   },
-  "model": "sonnet",
   "statusLine": {
     "type": "command",
-    "command": "npx -y ccstatusline@latest",
+    "command": "npx -y @owloops/claude-powerline@latest --style=tui",
     "padding": 0
   },
   "enabledPlugins": {
     "explanatory-output-style@claude-plugins-official": true,
-    "gh-cli@trailofbits": true
+    "gh-cli@trailofbits": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "impeccable": {
+      "source": {
+        "source": "github",
+        "repo": "pbakaus/impeccable"
+      }
+    },
+    "superpowers-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers-marketplace"
+      }
+    }
   },
   "alwaysThinkingEnabled": true,
-  "promptSuggestionEnabled": false,
+  "effortLevel": "medium",
   "autoUpdatesChannel": "stable",
   "minimumVersion": "2.1.19",
-  "skipDangerousModePermissionPrompt": true,
-  "effortLevel": "medium"
+  "skipDangerousModePermissionPrompt": true
 }
