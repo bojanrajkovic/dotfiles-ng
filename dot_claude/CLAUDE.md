@@ -5,6 +5,7 @@ Last verified: 2026-01-18
 ## About Bojan
 
 - Name: Bojan Rajkovic
+- Email: brajkovic@coderinserepeat.com
 - Role: Sr. Director of Software Engineering for Monitoring at SimpliSafe
 - I'm not going to talk to you much about work, though -- I'll ask you for
   research for things, coding projects for my homelab or other things,
