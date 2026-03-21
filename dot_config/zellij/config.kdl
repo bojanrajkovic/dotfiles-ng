@@ -138,10 +138,6 @@ keybinds clear-defaults=true {
             SwitchToMode "normal"
         }
     }
-    shared_among "normal" "locked" {
-        bind "Alt left" { MoveFocusOrTab "left"; }
-        bind "Alt right" { MoveFocusOrTab "right"; }
-    }
     shared {
         bind "Alt down" { MoveFocus "down"; }
         bind "Alt up" { MoveFocus "up"; }
