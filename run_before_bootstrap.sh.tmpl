@@ -1,0 +1,36 @@
+#!/bin/bash
+set -euo pipefail
+
+# Install mise if not present
+if ! command -v mise &>/dev/null && [ ! -x "${HOME}/.local/bin/mise" ]; then
+    echo "Installing mise..."
+    curl -fsSL https://mise.run | sh
+fi
+
+MISE="${HOME}/.local/bin/mise"
+
+# Install critical tools needed for chezmoi apply
+{{ if eq .chezmoi.os "darwin" -}}
+# Install Xcode Command Line Tools if not present (provides git)
+if ! xcode-select -p &>/dev/null; then
+    echo "Installing Xcode Command Line Tools..."
+    xcode-select --install
+    echo "Waiting for Xcode CLT installation to complete..."
+    until xcode-select -p &>/dev/null; do
+        sleep 5
+    done
+fi
+
+# Install Homebrew if not present
+if ! command -v brew &>/dev/null; then
+    echo "Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+{{ end -}}
+
+# Install 1Password CLI via mise if not present
+if ! command -v op &>/dev/null; then
+    echo "Installing 1Password CLI via mise..."
+    "$MISE" install aqua:1password/cli@latest
+fi

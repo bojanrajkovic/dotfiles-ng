@@ -34,6 +34,7 @@ usage = "latest"
 uv = "latest"
 yq = "latest"
 yt-dlp = "latest"
+fastfetch = "latest"
 opentofu = "1.11.5"
 
 [settings]

@@ -1,0 +1,17 @@
+#!/bin/bash
+{{ if ne .chezmoi.os "darwin" -}}
+echo "Not macOS, skipping Homebrew package installation"
+exit 0
+{{ end -}}
+
+set -euo pipefail
+
+if ! command -v brew &>/dev/null; then
+    echo "Homebrew not found, skipping package installation"
+    exit 1
+fi
+
+echo "Installing Homebrew packages from Brewfile..."
+brew bundle --file="${HOME}/.Brewfile" --no-lock
+
+echo "Homebrew package installation complete!"

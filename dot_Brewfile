@@ -1,2 +1,19 @@
-# macOS Homebrew packages (fallbacks for things not in mise)
-# Add packages here as needed
+# macOS Homebrew packages (things not available via mise)
+
+# Taps
+tap "mistertea/et"
+
+# Formulae
+brew "emacs"
+brew "mistertea/et/et"
+brew "syncthing"
+brew "units"
+
+# Casks
+cask "caffeine"
+cask "dropshare"
+cask "kitty"
+cask "qlmarkdown"
+cask "rectangle"
+cask "signal"
+cask "tailscale-app"
