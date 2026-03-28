@@ -15,7 +15,13 @@ run_once_setup-nerdctl-socket-group.sh
 {{ if ne .chezmoi.os "darwin" }}
 .Brewfile
 .config/kitty
-.config/mcp-paprika
-Library
 run_once_install-brew-packages.sh
+{{ end }}
+
+{{ if eq .chezmoi.os "darwin" }}
+.config/mcp-paprika
+{{ end }}
+
+{{ if eq .chezmoi.os "linux" }}
+Library
 {{ end }}
