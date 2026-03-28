@@ -2,8 +2,6 @@
   "env": {
     "ENABLE_TOOL_SEARCH": "true",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH": "/usr/lib64/chromium-browser/headless_shell",
-    "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
     "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
     "OTEL_METRICS_EXPORTER": "otlp",
     "OTEL_LOGS_EXPORTER": "otlp",
@@ -39,6 +37,20 @@
     "deny": [],
     "ask": []
   },
+  "model": "sonnet",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{ .chezmoi.homeDir }}/.claude/hooks/rtk-rewrite.sh"
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "npx -y @owloops/claude-powerline@latest --style=tui",
@@ -48,7 +60,12 @@
     "explanatory-output-style@claude-plugins-official": true,
     "gh-cli@trailofbits": true,
     "typescript-lsp@claude-plugins-official": true,
-    "rust-analyzer-lsp@claude-plugins-official": true
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "playground@claude-plugins-official": true,
+    "ed3d-basic-agents@ed3d-plugins": true,
+    "ed3d-extending-claude@ed3d-plugins": true,
+    "ed3d-session-reflection@ed3d-plugins": true,
+    "ed3d-research-agents@ed3d-plugins": true
   },
   "extraKnownMarketplaces": {
     "impeccable": {
@@ -65,7 +82,8 @@
     }
   },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "medium",
+  "effortLevel": "high",
+  "showClearContextOnPlanAccept": true,
   "autoUpdatesChannel": "stable",
   "minimumVersion": "2.1.19",
   "skipDangerousModePermissionPrompt": true
