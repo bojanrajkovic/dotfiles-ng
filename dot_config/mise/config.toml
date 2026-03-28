@@ -1,5 +1,5 @@
 [tools]
-"aqua:1password/cli" = "latest"
+"aqua:1password/cli" = "v2.32.0"
 "aqua:aws/aws-cli" = "latest"
 "aqua:cli/cli" = "latest"
 "aqua:pranshuparmar/witr" = "latest"

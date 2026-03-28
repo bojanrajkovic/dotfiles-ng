@@ -32,5 +32,5 @@ fi
 # Install 1Password CLI via mise if not present
 if ! command -v op &>/dev/null; then
     echo "Installing 1Password CLI via mise..."
-    "$MISE" install aqua:1password/cli@latest
+    "$MISE" install aqua:1password/cli@v2.32.0
 fi
