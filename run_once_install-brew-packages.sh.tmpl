@@ -6,10 +6,11 @@ exit 0
 
 set -euo pipefail
 
-if ! command -v brew &>/dev/null; then
+if [ ! -x /opt/homebrew/bin/brew ]; then
     echo "Homebrew not found, skipping package installation"
     exit 1
 fi
+eval "$(/opt/homebrew/bin/brew shellenv)"
 
 echo "Installing Homebrew packages from Brewfile..."
 brew bundle --file="${HOME}/.Brewfile" --no-lock
