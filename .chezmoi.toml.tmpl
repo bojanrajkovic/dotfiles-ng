@@ -8,6 +8,6 @@
 {{ end -}}
 
 [onepassword]
-  command = "{{ .chezmoi.homeDir }}/.local/share/mise/installs/aqua-1password-cli/v2.32.0/op"
+  command = {{ output "mise" "which" "op" | trim | quote }}
   mode = "account"
   prompt = true
