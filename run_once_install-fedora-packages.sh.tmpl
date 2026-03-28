@@ -1,5 +1,5 @@
 #!/bin/bash
-{{ if ne .chezmoi.osRelease.id "fedora" -}}
+{{ if ne (get .chezmoi.osRelease "id") "fedora" -}}
 echo "Not Fedora, skipping package installation"
 exit 0
 {{ end -}}
