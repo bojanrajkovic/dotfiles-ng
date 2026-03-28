@@ -9,10 +9,12 @@ brew "mistertea/et/et"
 brew "syncthing"
 
 # Casks
+cask "1password"
 cask "caffeine"
 cask "dropshare"
 cask "kitty"
 cask "qlmarkdown"
 cask "rectangle"
 cask "signal"
+cask "slack"
 cask "tailscale-app"
