@@ -7,7 +7,6 @@ tap "mistertea/et"
 brew "emacs"
 brew "mistertea/et/et"
 brew "syncthing"
-brew "units"
 
 # Casks
 cask "caffeine"
