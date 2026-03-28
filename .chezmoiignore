@@ -14,5 +14,6 @@ run_once_setup-nerdctl-socket-group.sh
 
 {{ if ne .chezmoi.os "darwin" }}
 .Brewfile
+.config/kitty
 run_once_install-brew-packages.sh
 {{ end }}
