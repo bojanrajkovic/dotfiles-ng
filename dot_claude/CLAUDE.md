@@ -109,8 +109,7 @@ files to help you remember. You should prefer to write things in Markdown.
 - Use Grep tools across directories to find relevant context in files
 - For finding specific files by name/pattern, use Glob tool
 - For syntax-aware code searches, use ast-grep (`sg`) when available
-- Your environment likely uses `fd` instead of `find` and `ripgrep` instead of
-  `grep` -- adapt your commandline arguments.
+- Prefer the dedicated Grep and Glob tools over shell commands when possible.
 
 ## Code Projects
 
@@ -172,3 +171,5 @@ If LSP or Serena skills are available in a project, you MUST use those to search
 - **Safe to modify**: All files in `~/Working/`
 - **Ask before modifying**: Files in `~/Code/` (confirm which project)
 - **Never modify**: System files, dotfiles outside `~/Code/dotfiles/`
+
+@RTK.md
