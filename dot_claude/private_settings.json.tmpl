@@ -37,19 +37,8 @@
     "deny": [],
     "ask": []
   },
-  "model": "sonnet",
   "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "{{ .chezmoi.homeDir }}/.claude/hooks/rtk-rewrite.sh"
-          }
-        ]
-      }
-    ]
+    "PreToolUse": []
   },
   "statusLine": {
     "type": "command",
@@ -58,7 +47,6 @@
   },
   "enabledPlugins": {
     "explanatory-output-style@claude-plugins-official": true,
-    "gh-cli@trailofbits": true,
     "typescript-lsp@claude-plugins-official": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
     "playground@claude-plugins-official": true,
@@ -81,10 +69,12 @@
       }
     }
   },
+  "syntaxHighlightingDisabled": false,
   "alwaysThinkingEnabled": true,
-  "effortLevel": "high",
+  "effortLevel": "medium",
   "showClearContextOnPlanAccept": true,
   "autoUpdatesChannel": "stable",
   "minimumVersion": "2.1.19",
+  "voiceEnabled": true,
   "skipDangerousModePermissionPrompt": true
 }

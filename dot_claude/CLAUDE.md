@@ -171,5 +171,3 @@ If LSP or Serena skills are available in a project, you MUST use those to search
 - **Safe to modify**: All files in `~/Working/`
 - **Ask before modifying**: Files in `~/Code/` (confirm which project)
 - **Never modify**: System files, dotfiles outside `~/Code/dotfiles/`
-
-@RTK.md

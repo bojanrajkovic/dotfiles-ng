@@ -10,6 +10,7 @@ setup-samba.sh
 run_once_install-fedora-packages.sh
 run_once_enable-linger.sh
 run_once_setup-nerdctl-socket-group.sh
+setup-samba.sh
 {{ end }}
 
 {{ if ne .chezmoi.os "darwin" }}
