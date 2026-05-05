@@ -1,6 +1,6 @@
 # Claude Configuration
 
-Last verified: 2026-01-18
+Last verified: 2026-05-05
 
 ## About Bojan
 
@@ -19,97 +19,92 @@ Last verified: 2026-01-18
 
 ## Working Directories
 
-- **~/Working/memories**: Things to remember long-term. Memories should be named
-  in an entry-specific way. This is a place for long-term documentation -- think
-  of it as a personal wiki.
-- **~/Working/journal**: Journal entries related to work -- more of a "what
-  happened" than a long-term memory. Each file in here corresponds to a day, and
-  multiple journal entries in a day should all go into the same file.
-  - Unless specified, journal entries should be considered to be for today's date.
-- **~/Working/ideas**: Future ideas or things I'm noodling on.
-- **~/Working/projects**: Projects I'm working on, with one folder per project,
-  full of markdown files.
+- **~/Working/todo**: Personal todo list (managed via `/tdl` slash command).
+- **~/Working/projects**: Local artifacts only — code, data, config files, and
+  HTML artifacts for active projects. Project *documentation* lives in Outline
+  (see Project Management below).
 
-For all of these things (memories, journals, ideas, todos, projects, etc.), you
-should create Markdown documents, and include a small YAML frontmatter section
-following this template:
-
-```yaml
----
-date: 2025-12-27
-category: memory|journal|idea|project|research
-project: project-name  # optional, omit if not project-related
-labels:
-  - label1
-  - label2
----
-```
-
-**Frontmatter Guidelines:**
-- `date`: ISO 8601 format (YYYY-MM-DD), defaults to today's date unless specified
-- `category`: One of: memory, journal, idea, project, research
-- `project`: Optional, only for project-related content. Use lowercase with hyphens (e.g., "home-assistant")
-- `labels`: Optional list of tags. Ask user for labels - they'll provide comma-separated list or decline. Use lowercase, hyphenated multi-word labels (e.g., "home-automation", "kubernetes")
-
-Use these attributes to help you search.
+**Memories, Journal, and Ideas now live in Outline.** Do not create local files
+for any of these — use Outline MCP tools instead:
+- Memories + Journal → Personal collection (`ace54f9c-91d2-4d17-bf17-f503e63326c0`, private)
+- Ideas → Resources collection (`ab5099b4-17a3-49e6-9b0c-b9792435a2d3`), under the "Ideas" parent doc
 
 ## When to Use Memories, Ideas, and Journals
 
-To help organize information effectively, follow these guidelines:
-
-**Use ~/Working/memories/ when:**
+**Use Outline Personal collection (`ace54f9c-91d2-4d17-bf17-f503e63326c0`) for memories when:**
 - Documenting technical solutions or troubleshooting steps to remember long-term
 - Creating reference documentation for tools, configurations, or processes
 - Recording important decisions and their rationale
 - Building a personal wiki of reusable knowledge
-- Name files descriptively (e.g., "kubernetes-dns-troubleshooting.md")
+- Use `mcp__claude_ai_Outline__create_document` with the Personal collection ID
+- Use descriptive titles (e.g., "Kubernetes DNS Troubleshooting")
 
-**Use ~/Working/ideas/ when:**
+**Use Outline Resources collection for ideas when:**
 - Capturing future project ideas or features to explore
 - Brainstorming solutions before committing to implementation
 - Noting interesting concepts to investigate later
 - Recording "what if" scenarios or experimental thoughts
+- Create as a child doc under the "Ideas" parent doc in Resources
+- Ideas may eventually be promoted to the Projects collection
 
-**Use ~/Working/journal/ when:**
+**Use Outline Personal collection for journal when:**
 - Documenting what happened during a day (events, conversations, progress)
 - Recording time-sensitive context that's useful short-term
 - Tracking daily work or personal activities
-- Files named by date: YYYY-MM-DD.md, multiple entries per day go in same file
-- Each entry within a day should use `## HH:MM - Title` format for timestamps
-
-**Use ~/Working/projects/ when:**
-- See "Project Management" section below for full workflow
+- Structure: Personal collection → "Journal" parent doc → YYYY-MM-DD child doc → `##` sections per topic
+- Each date doc title: `YYYY-MM-DD`; topic entries are `##` headings within the doc
 
 ## Instructions and Projects
 
-You should always search the working directories above to see if there's
-anything relevant to our current conversation.
+You should always search Outline and local working directories for anything
+relevant to the current conversation before starting work.
 
 **Project Management:**
-- ALWAYS check `~/Working/projects/INDEX.yaml` before creating new projects
-- When creating a new project:
-  1. Check INDEX.yaml to avoid duplicates
-  2. Create directory: `~/Working/projects/<project-name>/`
-  3. Add entry to INDEX.yaml with metadata
-  4. Create README.md in project directory with frontmatter
-- When updating a project:
-  1. Update the `updated` field in INDEX.yaml
-  2. Append important information to project files
-- Projects have multiple documents; search entire project directory for context
-- Look for PDFs, images, or other files that might contain relevant information
 
-As I do work/converse with you, append important information to the project
-files to help you remember. You should prefer to write things in Markdown.
+Projects have two layers:
+1. **Documentation** (research notes, design docs, planning) → **Outline Projects collection** (`cdabb3c3-c49b-4089-98e5-25e4a094aa0c`)
+2. **Local artifacts** (code, data files, configs, scripts, HTML) → `~/Working/projects/<project-name>/` or `~/Projects/<project-name>/`
+
+**Finding existing projects:**
+- ALWAYS call `mcp__claude_ai_Outline__list_collection_documents` on the Projects collection before creating anything new
+- For code-adjacent projects, also check `~/Working/projects/PROJECTS.yaml` for the local path
+
+**Creating a new project:**
+1. Call `mcp__claude_ai_Outline__list_collection_documents` to confirm it doesn't exist
+2. Create a parent doc in the Projects collection with `mcp__claude_ai_Outline__create_document`
+3. If the project has local code/data, create `~/Working/projects/<name>/` for those artifacts only
+4. If the project has a code repo at `~/Projects/<name>/`, add an entry to `~/Working/projects/PROJECTS.yaml`
+
+**Updating a project:**
+1. Find the project doc in Outline (search or list collection)
+2. Update it with `mcp__claude_ai_Outline__update_document`
+3. For local artifacts, write/update local files as before
+
+**PROJECTS.yaml** (`~/Working/projects/PROJECTS.yaml`) — thin pointer index for
+projects with significant local code repos. Format:
+
+```yaml
+- name: atc
+  outline_id: <parent-doc-id>
+  local_path: ~/Projects/atc
+
+- name: nacha-visualizer
+  outline_id: <parent-doc-id>
+  local_path: ~/Projects/nacha-visualizer
+```
+
+Pure-doc projects (no code repo) don't need an entry here.
+
+As work progresses, append notes and decisions to the relevant Outline docs.
 
 ## Search Behavior
 
-- Always search the working directories outlined above for context before
-  starting work on a task.
-- Check `~/Working/projects/INDEX.yaml` first for quick project lookup
-- Use Grep tools across directories to find relevant context in files
-- For finding specific files by name/pattern, use Glob tool
-- For syntax-aware code searches, use ast-grep (`sg`) when available
-- Prefer the dedicated Grep and Glob tools over shell commands when possible.
+- **For project docs, memories, journal**: Use `mcp__claude_ai_Outline__list_documents` with a query
+  - Projects collection: `cdabb3c3-c49b-4089-98e5-25e4a094aa0c`
+  - Personal collection: `ace54f9c-91d2-4d17-bf17-f503e63326c0` (memories + journal)
+  - Resources collection: `ab5099b4-17a3-49e6-9b0c-b9792435a2d3` (reading recommendations)
+- **For local code/configs/data**: Use grep/glob/ast-grep on `~/Working/projects/` or `~/Projects/`
+- Check `~/Working/projects/PROJECTS.yaml` when you need to connect a project name to a local code path or Outline doc ID
 
 ## Code Projects
 
@@ -139,9 +134,9 @@ If LSP or Serena skills are available in a project, you MUST use those to search
   - GitHub MCP: For repository documentation and code search
   - Perplexity: For complex research requiring reasoning or deep analysis
 - Save research outputs:
-  - Short-term/project-specific: Add to project files in `~/Working/projects/<project-name>/`
-  - Long-term reference: Create memory in `~/Working/memories/`
-  - Exploratory: Capture as idea in `~/Working/ideas/`
+  - Project-specific: Add to the project's Outline doc (or a child doc) via `mcp__claude_ai_Outline__update_document` / `mcp__claude_ai_Outline__create_document`
+  - Long-term reference: Create a memory doc in the Outline Personal collection
+  - Exploratory: Capture as child doc under "Ideas" in the Outline Resources collection
 
 ## Task Management
 
@@ -151,7 +146,6 @@ If LSP or Serena skills are available in a project, you MUST use those to search
    - Use for multi-step engineering work within a coding session
    - Tracks implementation progress, test runs, fixes
    - Automatically managed per-session
-   - Can optionally save alongside projects in `~/Working/projects/<project-name>/`
 
 2. **Personal life todos** (`/tdl` slash command):
    - Use for personal tasks, homelab work, household items
@@ -161,13 +155,13 @@ If LSP or Serena skills are available in a project, you MUST use those to search
 
 **General guidelines:**
 - Always run lints/tests after code changes
-- Search existing context before starting new work
-- Check `~/Working/projects/INDEX.yaml` before creating projects
-- Update project files with decisions and next steps regularly
+- Search Outline and local context before starting new work
+- Check Outline Projects collection before creating projects
+- Update Outline project docs with decisions and next steps regularly
 - Use the AskUserQuestion tool whenever you have questions for me, instead of presenting me with text options
 
 ## Boundaries
 
-- **Safe to modify**: All files in `~/Working/`
-- **Ask before modifying**: Files in `~/Code/` (confirm which project)
+- **Safe to modify**: All files in `~/Working/` (excluding memories/journal which are now in Outline)
+- **Ask before modifying**: Files in `~/Code/` or `~/Projects/` (confirm which project)
 - **Never modify**: System files, dotfiles outside `~/Code/dotfiles/`

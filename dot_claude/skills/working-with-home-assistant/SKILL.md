@@ -30,7 +30,7 @@ autoActivate:
     - ha api
 ---
 
-Last verified: 2026-01-18
+Last verified: 2026-05-05
 
 # Home Assistant Integration
 
@@ -79,6 +79,10 @@ You are now in Home Assistant expert mode. You have direct access to query and c
 **Home Assistant URL**: `https://homeassistant.services.coderinserepeat.com`
 
 **Project directory**: `/Users/brajkovic/Sync/Working/projects/home-assistant/`
+- Local files (automations YAML, config, sensor definitions) stay here
+- Documentation (implementation notes, research, migration guides) lives in Outline
+  - Projects collection: `cdabb3c3-c49b-4089-98e5-25e4a094aa0c`
+  - Search: `mcp__claude_ai_Outline__list_documents` with query + collectionId
 
 ## Core Capabilities
 
@@ -355,6 +359,7 @@ When a user asks about Home Assistant topics:
    - Save all automation YAML files in `/Users/brajkovic/Sync/Working/projects/home-assistant/`
    - Use naming convention: `{purpose}_automation.yaml`
    - Keep local YAML in sync with Home Assistant
+   - Save implementation notes or research to Outline (Projects collection, Home Assistant doc)
 
 5. **Error handling**:
    - Check HTTP response codes (200 = success, 4xx = client error, 5xx = server error)
