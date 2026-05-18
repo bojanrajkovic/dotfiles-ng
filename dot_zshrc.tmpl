@@ -8,8 +8,7 @@ export XDG_RUNTIME_DIR=/run/user/$(id -u)
 {{ end -}}
 export EDITOR="emacsclient -a nano"
 
-# Disable Claude Code auto-updater, but enable plugin updates
-export DISABLE_AUTOUPDATER=true
+# Force-update Claude plugins.
 export FORCE_AUTOUPDATE_PLUGINS=true
 
 # History
@@ -17,6 +16,14 @@ setopt HIST_IGNORE_ALL_DUPS
 HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
+
+# Navigation: bare directory names cd into them, and every cd pushes onto the
+# dir stack. Use `dirs -v` to inspect, `cd -<TAB>` to jump back.
+setopt AUTO_CD
+setopt AUTO_PUSHD
+setopt PUSHD_IGNORE_DUPS
+setopt PUSHD_SILENT
+setopt PUSHD_MINUS
 
 # Emacs keybindings
 bindkey -e
@@ -36,6 +43,8 @@ eval "$(chezmoi completion zsh)"
 
 # Initialize starship
 eval "$(starship init zsh)"
+
+export GITHUB_PERSONAL_ACCESS_TOKEN="$(gh auth token)"
 
 {{ if eq .chezmoi.os "linux" -}}
 # Auto-attach to Zellij on SSH/Mosh login
