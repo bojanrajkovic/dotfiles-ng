@@ -5,6 +5,9 @@ stty -ixon
 # Set these early in initialization in case something goes sideways
 {{ if eq .chezmoi.os "linux" -}}
 export XDG_RUNTIME_DIR=/run/user/$(id -u)
+# systemd socket-activates a shared ssh-agent on demand — one agent for every
+# shell/pane, instead of `eval $(ssh-agent)` spawning a new orphaned one per shell.
+export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
 {{ end -}}
 export EDITOR="emacsclient -a nano"
 
