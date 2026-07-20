@@ -107,6 +107,7 @@
     }
   },
   "syntaxHighlightingDisabled": false,
+  "alwaysThinkingEnabled": true,
   "effortLevel": "high",
   "showClearContextOnPlanAccept": true,
   "autoUpdatesChannel": "latest",
@@ -114,7 +115,7 @@
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-daltonized",
   "editorMode": "normal",
-  "preferredNotifChannel": "notifications_disabled",
+  "preferredNotifChannel": {{ if eq .chezmoi.hostname "junction" }}"kitty"{{ else }}"notifications_disabled"{{ end }},
   "teammateMode": "auto",
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
