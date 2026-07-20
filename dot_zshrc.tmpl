@@ -11,8 +11,10 @@ export EDITOR="emacsclient -a nano"
 # Force-update Claude plugins.
 export FORCE_AUTOUPDATE_PLUGINS=true
 
+{{ if eq .chezmoi.os "darwin" -}}
 # colima's docker socket isn't at the default /var/run/docker.sock path.
 export DOCKER_HOST="unix://$HOME/.colima/default/docker.sock"
+{{ end -}}
 
 # History
 setopt HIST_IGNORE_ALL_DUPS
