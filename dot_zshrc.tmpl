@@ -11,6 +11,9 @@ export EDITOR="emacsclient -a nano"
 # Force-update Claude plugins.
 export FORCE_AUTOUPDATE_PLUGINS=true
 
+# colima's docker socket isn't at the default /var/run/docker.sock path.
+export DOCKER_HOST="unix://$HOME/.colima/default/docker.sock"
+
 # History
 setopt HIST_IGNORE_ALL_DUPS
 HISTFILE=~/.zsh_history
@@ -98,6 +101,9 @@ export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-ran
 
 # Only use uv-managed Python
 export UV_MANAGED_PYTHON=1
+
+# Add our local ed25519 key to ssh-agent
+ssh-add
 
 # zsh-syntax-highlighting - must be last
 source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

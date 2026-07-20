@@ -26,17 +26,7 @@ This is the second-pair-of-eyes step that catches what in-cluster planning passe
 
 ## Prerequisites — verify once per machine
 
-Codex is invoked via mise's npm shim. Two things must be true:
-
-1. `mise exec npm:@openai/codex -- codex --version` resolves. If it errors, install it (`mise use -g npm:@openai/codex@latest` or per the user's mise config).
-2. `~/.codex/config.toml` contains `model_reasoning_effort = "xhigh"`. **There is no CLI flag for this** — it is a config-file-only setting. If absent, the review will run at default reasoning and miss the depth that justifies the wait.
-
-```bash
-grep model_reasoning_effort ~/.codex/config.toml
-# Expected: model_reasoning_effort = "xhigh"
-```
-
-If neither prerequisite holds, surface the gap to the user before proceeding — don't silently downgrade to a weaker review.
+Codex is invoked via mise's npm shim. Ensure `mise exec npm:@openai/codex -- codex --version` resolves. If it errors, install it (`mise use -g npm:@openai/codex@latest` or per the user's mise config).
 
 ## Invocation Pattern
 
@@ -52,6 +42,7 @@ echo "$REVIEW_DIR"   # echo so the path is visible after the background run comp
 
 # 3. Run codex with the prompt piped via stdin; outputs go to $REVIEW_DIR.
 cat "$REVIEW_DIR/prompt.md" | mise exec npm:@openai/codex -- codex exec \
+  -c 'model_reasoning_effort="xhigh"' \
   --sandbox read-only \
   --color never \
   --output-last-message "$REVIEW_DIR/output.md" \
@@ -76,9 +67,9 @@ The prompt file (`$REVIEW_DIR/prompt.md`) follows this structure. Adapt scrutiny
 ### 1. Role and context (1–2 paragraphs)
 
 - What project, what stack, what artifact is being reviewed, where it sits in the overall sequence.
-- **Executor context (required)** — state that the plan executor is an AI agent (Claude Code) with access to `CLAUDE.md`, feedback memories under `~/.claude/projects/*/memory/feedback_*.md`, and agent tooling (subagent dispatches, `project-claude-librarian`, etc.). Codex defaults to assuming a zero-context human and will otherwise flag agent-resolvable references as "unavailable" — those are false positives. Excerpt:
+- **Executor context (required)** — state that the plan executor is an AI agent (Claude Code) with access to `CLAUDE.md`, and agent tooling (subagent dispatches, `project-claude-librarian`, etc.). Codex defaults to assuming a zero-context human and will otherwise flag agent-resolvable references as "unavailable" — those are false positives. Excerpt:
 
-  > The plan executor is an AI coding agent (Claude Code) with access to project `CLAUDE.md` files, per-project feedback memories under `~/.claude/projects/*/memory/feedback_*.md`, and agent tooling (subagent dispatch, `project-claude-librarian`). Do NOT flag references to these resources as "unavailable" — the executor resolves them at runtime.
+  > The plan executor is an AI coding agent (Claude Code) with access to project `CLAUDE.md` files, and agent tooling (subagent dispatch, `project-claude-librarian`). Do NOT flag references to these resources as "unavailable" — the executor resolves them at runtime.
 
 - **Ground truth statement** — "The [design plan / upstream ideation / etc.] is the ground truth. Read it first, then read the code."
 
@@ -90,7 +81,7 @@ Pick the variant matching the artifact:
 1. **Architectural best practices** — component boundaries, state management, separation of concerns, testability, scalability.
 2. **UX best practices and pitfalls** — real-time UX, animation correctness, accessibility (WCAG/ARIA), keyboard nav, screen-reader behavior, reduced-motion, empty/loading/error states, color-only information.
 3. **Design internal consistency** — contradictions between sections, AC coverage gaps, phase ordering, unstated dependencies.
-4. **Guideline conformance** — project-specific guidelines (`.ed3d/`, `.impeccable.md`, `CLAUDE.md`, `CONTRIBUTING.md`).
+4. **Guideline conformance** — project-specific guidelines (`docs` contents, `.impeccable.md`, `CLAUDE.md`, `CONTRIBUTING.md`).
 5. **Alignment with upstream ideation** — does the plan honor or intentionally diverge from prior decisions in ideation/spec docs.
 
 **PR review (pre-merge variant):**
@@ -184,13 +175,12 @@ The "Be opinionated" line is load-bearing. Without it, Codex hedges. With it, Co
 
 ## Triaging the output
 
-Codex returns a tiered review. Process top-down:
+Codex returns a tiered review. Process top-down (blockers, important concerns, minor nits, unresolved questions), raising them to the user for understanding and verification.
 
-1. **Blockers — fold every one into the plan** via `Edit` before exiting plan mode. If you disagree with a blocker, raise it to the user with reasoning before overruling. Don't silently dismiss.
-2. **Important concerns — fold most in.** Defer only with an explicit reason ("this is out of scope for §X; tracked for §Y"). Don't accumulate "we'll address it later" debt.
-3. **Minor nits — selectively apply.** Worth doing if cheap; skip if cosmetic. Bias toward applying.
-4. **Strengths — preserved by default;** no action needed.
-5. **Unresolved questions — surface to user.** These are the genuine "needs human decision" items.
+Cosmetic nitpicks, "copy" correctness, etc. can be applied directly.
+
+Surface strengths as a summary only -- there's no action needed by the user.
+
 
 ### Filter false positives
 
@@ -221,15 +211,13 @@ The executor-context section in the prompt (Section 1) is what reduces these fal
 ## Quick Reference
 
 ```bash
-# One-time check
-grep model_reasoning_effort ~/.codex/config.toml   # expect: "xhigh"
-
 # Per-review
 REVIEW_DIR=$(mktemp -d "/tmp/codex-plan-review-XXXXXX")
 echo "$REVIEW_DIR"
 # Write tool → $REVIEW_DIR/prompt.md
 # Bash (run_in_background: true):
 cat "$REVIEW_DIR/prompt.md" | mise exec npm:@openai/codex -- codex exec \
+  -c 'model_reasoning_effort="xhigh"' \
   --sandbox read-only --color never \
   --output-last-message "$REVIEW_DIR/output.md" \
   - > "$REVIEW_DIR/codex.log" 2>&1
