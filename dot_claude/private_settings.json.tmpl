@@ -5,11 +5,14 @@
     "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
     "OTEL_METRICS_EXPORTER": "otlp",
     "OTEL_LOGS_EXPORTER": "otlp",
+    "OTEL_LOG_TOOL_DETAILS": "1",
     "OTEL_EXPORTER_OTLP_PROTOCOL": "http/json",
     "OTEL_EXPORTER_OTLP_ENDPOINT": "https://alloy.services.coderinserepeat.com:4318",
-    "OTEL_RESOURCE_ATTRIBUTES": "environment=homelab,host=workstation",
+    "OTEL_RESOURCE_ATTRIBUTES": "environment=homelab,host={{ .chezmoi.hostname }}",
     "OTEL_METRICS_INCLUDE_VERSION": "true",
-    "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "cumulative"
+    "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "cumulative",
+    "ENABLE_PROMPT_CACHING_1H": "true",
+    "CLAUDE_AFK_TIMEOUT_MS": "86400000"
   },
   "permissions": {
     "allow": [
@@ -35,10 +38,22 @@
       "Bash(git rev-parse:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "defaultMode": "default"
   },
+  "model": "sonnet",
   "hooks": {
-    "PreToolUse": []
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/no-pipe-test-output.sh"
+          }
+        ]
+      }
+    ]
   },
   "statusLine": {
     "type": "command",
@@ -47,34 +62,62 @@
   },
   "enabledPlugins": {
     "explanatory-output-style@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "rust-analyzer-lsp@claude-plugins-official": true,
     "playground@claude-plugins-official": true,
-    "ed3d-basic-agents@ed3d-plugins": true,
-    "ed3d-extending-claude@ed3d-plugins": true,
-    "ed3d-session-reflection@ed3d-plugins": true,
-    "ed3d-research-agents@ed3d-plugins": true
+    "elements-of-style@superpowers-marketplace": true,
+    "skill-creator@claude-plugins-official": true,
+    "ponytail@ponytail": true,
+    "agent-browser@agent-browser": true,
+    "ed3d-research-agents@ed3d-plugins": true,
+    "impeccable@impeccable": true
   },
   "extraKnownMarketplaces": {
-    "impeccable": {
+    "agent-browser": {
       "source": {
         "source": "github",
-        "repo": "pbakaus/impeccable"
+        "repo": "vercel-labs/agent-browser"
+      },
+      "autoUpdate": true
+    },
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
       }
+    },
+    "ed3d-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "ed3dai/ed3d-plugins"
+      },
+      "autoUpdate": true
     },
     "superpowers-marketplace": {
       "source": {
         "source": "github",
         "repo": "obra/superpowers-marketplace"
-      }
+      },
+      "autoUpdate": true
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      },
+      "autoUpdate": true
     }
   },
   "syntaxHighlightingDisabled": false,
-  "alwaysThinkingEnabled": true,
-  "effortLevel": "medium",
+  "effortLevel": "high",
   "showClearContextOnPlanAccept": true,
-  "autoUpdatesChannel": "stable",
-  "minimumVersion": "2.1.19",
-  "voiceEnabled": true,
-  "skipDangerousModePermissionPrompt": true
+  "autoUpdatesChannel": "latest",
+  "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark-daltonized",
+  "editorMode": "normal",
+  "preferredNotifChannel": "notifications_disabled",
+  "teammateMode": "auto",
+  "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true,
+  "useAutoModeDuringPlan": true,
+  "voiceEnabled": true
 }
