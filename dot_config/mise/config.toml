@@ -2,6 +2,7 @@
 "aqua:1password/cli" = "v2.32.0"
 "aqua:aws/aws-cli" = "latest"
 "aqua:cli/cli" = "latest"
+"aqua:git-lfs/git-lfs" = "latest"
 "aqua:pranshuparmar/witr" = "latest"
 "cargo:ast-grep" = "latest"
 "cargo:bat" = "latest"
@@ -46,6 +47,7 @@ gcloud = "latest"
 flyctl = "latest"
 pnpm = "10.33.0"
 duckdb = "latest"
+rclone = "latest"
 
 [settings]
 experimental = true

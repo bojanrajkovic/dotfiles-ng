@@ -110,6 +110,10 @@ export UV_MANAGED_PYTHON=1
 # Add our local ed25519 key to ssh-agent
 ssh-add
 
+function vnclaude() {
+  ssh -f -N -L 5900:localhost:5900 brajkovic@junction.gaur-kardashev.ts.net
+}
+
 # zsh-syntax-highlighting - must be last
 source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 {{ if eq .chezmoi.os "linux" -}}

@@ -12,3 +12,7 @@ echo "Installing mise-managed tools..."
 "$MISE" install --yes
 
 echo "mise tool installation complete!"
+
+if "$MISE" which git-lfs &>/dev/null; then
+    git lfs install --skip-repo
+fi
