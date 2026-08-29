@@ -11,12 +11,19 @@ run_once_install-fedora-packages.sh
 run_once_enable-linger.sh
 run_once_setup-nerdctl-socket-group.sh
 setup-samba.sh
+.local/bin/open-local
+.local/bin/xdg-open
+.local/share/ssh_remote_xdg_open
+.ssh/rc
 {{ end }}
 
 {{ if ne .chezmoi.os "darwin" }}
 .Brewfile
 .config/kitty
 run_once_install-brew-packages.sh
+.local/bin/ssh-remote-xdg-open-handler
+run_once_setup-ssh-remote-xdg-open-macos.sh
+.ssh/config
 {{ end }}
 
 {{ if eq .chezmoi.os "darwin" }}

@@ -1,0 +1,23 @@
+#!/bin/sh
+# Send NUL-delimited host\turl messages to the forwarded TCP port on the remote,
+# which sshd will forward back to the local UNIX socket.
+set -eu
+
+PORT="${OPEN_LOCAL_PORT:-19999}"
+HOST="127.0.0.1"
+ALIAS_FILE="$HOME/.local/share/ssh_remote_xdg_open/host_alias"
+HOST_ALIAS=""
+if [ -f "$ALIAS_FILE" ]; then
+  HOST_ALIAS=$(cat "$ALIAS_FILE")
+fi
+
+if [ $# -eq 0 ]; then
+  echo "Usage: open-local <url> [more-urls...]" >&2
+  exit 2
+fi
+
+{
+  for url in "$@"; do
+    printf '%s\t%s\0' "$HOST_ALIAS" "$url"
+  done
+} | socat - "TCP:${HOST}:${PORT}",connect-timeout=3

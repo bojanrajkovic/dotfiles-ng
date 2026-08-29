@@ -1,0 +1,71 @@
+#!/bin/bash
+{{ if ne .chezmoi.os "darwin" -}}
+echo "Not macOS, skipping ssh-remote-xdg-open LaunchAgent setup"
+exit 0
+{{ end -}}
+
+set -euo pipefail
+
+# Registers a launchd agent that plays the role systemd's socket-activated
+# service plays on Linux for ssh_remote_xdg_open: it listens on a local UNIX
+# socket, and for every connection (one per forwarded xdg-open/open-local call
+# from a remote host) execs ~/.local/bin/ssh-remote-xdg-open-handler with the
+# connection on stdin. See private_dot_local/private_bin/executable_xdg-open
+# and executable_open-local for the remote-side counterpart.
+
+if ! command -v socat >/dev/null 2>&1; then
+    echo "socat not found, installing via Homebrew..."
+    if [ ! -x /opt/homebrew/bin/brew ]; then
+        echo "Homebrew not found, cannot install socat" >&2
+        exit 1
+    fi
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+    brew install socat
+fi
+SOCAT_BIN="$(command -v socat)"
+
+mkdir -p "$HOME/.ssh/sockets"
+
+PLIST="$HOME/Library/LaunchAgents/tech.rymcg.ssh-remote-xdg-open.plist"
+SOCKET_PATH="$HOME/.ssh/sockets/ssh_remote_xdg_open.sock"
+HANDLER="$HOME/.local/bin/ssh-remote-xdg-open-handler"
+
+echo "Writing $PLIST..."
+cat > "$PLIST" <<PLIST_EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>tech.rymcg.ssh-remote-xdg-open</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>${SOCAT_BIN}</string>
+        <string>UNIX-LISTEN:${SOCKET_PATH},fork,mode=600,unlink-early</string>
+        <string>EXEC:${HANDLER}</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/ssh_remote_xdg_open.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/ssh_remote_xdg_open.err.log</string>
+</dict>
+</plist>
+PLIST_EOF
+
+echo "Loading LaunchAgent..."
+launchctl unload "$PLIST" 2>/dev/null || true
+launchctl load "$PLIST"
+
+echo "ssh-remote-xdg-open LaunchAgent set up. Socket: $SOCKET_PATH"
+echo "Remember to add a RemoteForward block to ~/.ssh/config for each remote host, e.g.:"
+echo "  Host <alias>"
+echo "      RemoteForward 127.0.0.1:19999 $SOCKET_PATH"
+echo "      ExitOnForwardFailure yes"
+echo "      ControlMaster auto"
+echo "      ControlPath ~/.ssh/sockets/<alias>-ctrl"
+echo "      ControlPersist 10m"
+echo "(RemoteForward's socket path must be absolute -- tilde expansion is not reliable there.)"

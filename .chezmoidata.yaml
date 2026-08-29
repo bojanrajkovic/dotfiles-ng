@@ -1,0 +1,9 @@
+# Remote Linux hosts to set up ssh_remote_xdg_open forwarding to, from Mac
+# clients. Each entry's aliases become one `Host` block in ~/.ssh/config; all
+# aliases for one entry must resolve to the same physical machine, since they
+# share one ControlPath (keyed on the first alias) and one host_alias value
+# (each remote's own hostname, rendered independently on that machine).
+sshRemoteXdgOpenHosts:
+  - aliases:
+      - junction
+      - junction.home.coderinserepeat.com

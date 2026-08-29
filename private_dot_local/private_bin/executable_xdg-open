@@ -1,0 +1,27 @@
+#!/bin/sh
+# Prefer the SSH reverse-forward to open URLs locally; otherwise use a native opener.
+#
+# The fallback opener is hardcoded to /usr/bin/xdg-open (not resolved via `command -v
+# xdg-open`) because this script itself is installed as ~/.local/bin/xdg-open, which
+# sits ahead of /usr/bin on PATH -- a PATH-based lookup would find itself and recurse.
+set -eu
+
+PORT="${OPEN_LOCAL_PORT:-19999}"
+ALIAS_FILE="$HOME/.local/share/ssh_remote_xdg_open/host_alias"
+HOST_ALIAS=""
+if [ -f "$ALIAS_FILE" ]; then
+  HOST_ALIAS=$(cat "$ALIAS_FILE")
+fi
+
+FALLBACK_OPENER="/usr/bin/xdg-open"
+
+# If the tunnel is reachable, ship NUL-delimited host\turl messages through it.
+if socat -u - "TCP:127.0.0.1:${PORT}",connect-timeout=3 </dev/null >/dev/null 2>&1; then
+  {
+    for url in "$@"; do
+      printf '%s\t%s\0' "$HOST_ALIAS" "$url"
+    done
+  } | socat - "TCP:127.0.0.1:${PORT}" || exit $?
+else
+  exec "$FALLBACK_OPENER" "$@"
+fi

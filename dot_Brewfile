@@ -6,6 +6,7 @@ tap "mistertea/et"
 # Formulae
 brew "emacs"
 brew "mistertea/et/et"
+brew "socat"
 brew "syncthing"
 
 # Casks

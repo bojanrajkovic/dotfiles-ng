@@ -1,0 +1,69 @@
+#!/bin/sh
+# Reads NUL-delimited "host\turl" messages from stdin (macOS variant: opens with `open`).
+set -eu
+
+host_to_loopback() {
+  _alias="$1"
+  _hash=$(printf '%s' "$_alias" | cksum | cut -d' ' -f1)
+  _b1=$(( (_hash >> 16) % 254 + 1 ))
+  _b2=$(( (_hash >> 8)  % 256 ))
+  _b3=$(( _hash         % 254 + 1 ))
+  if [ "$_b1" -eq 0 ] && [ "$_b2" -eq 0 ] && [ "$_b3" -eq 1 ]; then
+    _b3=2
+  fi
+  printf '127.%d.%d.%d' "$_b1" "$_b2" "$_b3"
+}
+
+parse_url() {
+  _url="$1"
+  URL_SCHEME="${_url%%://*}"
+  _rest="${_url#*://}"
+  case "$_rest" in
+    */*) URL_PATH="/${_rest#*/}" ;;
+    *)   URL_PATH="" ;;
+  esac
+  _hostport="${_rest%%/*}"
+  case "$_hostport" in
+    *:*) URL_HOST="${_hostport%%:*}"; URL_PORT="${_hostport##*:}" ;;
+    *)   URL_HOST="$_hostport"; URL_PORT="" ;;
+  esac
+}
+
+is_localhost() {
+  case "$1" in
+    localhost|127.0.0.1|"[::1]"|::1) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+setup_forward() {
+  _ssh_host="$1"; _local_addr="$2"; _port="$3"
+  ssh -O forward -L "${_local_addr}:${_port}:localhost:${_port}" "$_ssh_host" 2>/dev/null || true
+}
+
+handle_message() {
+  _msg="$1"
+  _host_alias="${_msg%%	*}"
+  _url="${_msg#*	}"
+
+  if [ "$_host_alias" = "$_url" ]; then
+    open "$_url"
+    return
+  fi
+
+  parse_url "$_url"
+
+  if is_localhost "$URL_HOST" && [ -n "$URL_PORT" ] && [ -n "$_host_alias" ]; then
+    _local_addr=$(host_to_loopback "$_host_alias")
+    setup_forward "$_host_alias" "$_local_addr" "$URL_PORT"
+    _new_url="${URL_SCHEME}://${_local_addr}:${URL_PORT}${URL_PATH}"
+    open "$_new_url"
+  else
+    open "$_url"
+  fi
+}
+
+tr '\0' '\n' | while IFS= read -r msg; do
+  [ -z "$msg" ] && continue
+  handle_message "$msg"
+done
