@@ -12,6 +12,7 @@ export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
 export EDITOR="emacsclient -a nano"
 
 # Force-update Claude plugins.
+export DISABLE_AUTOUPDATER=false
 export FORCE_AUTOUPDATE_PLUGINS=true
 
 {{ if eq .chezmoi.os "darwin" -}}
