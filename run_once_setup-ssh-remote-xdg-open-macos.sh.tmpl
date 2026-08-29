@@ -61,11 +61,4 @@ launchctl unload "$PLIST" 2>/dev/null || true
 launchctl load "$PLIST"
 
 echo "ssh-remote-xdg-open LaunchAgent set up. Socket: $SOCKET_PATH"
-echo "Remember to add a RemoteForward block to ~/.ssh/config for each remote host, e.g.:"
-echo "  Host <alias>"
-echo "      RemoteForward 127.0.0.1:19999 $SOCKET_PATH"
-echo "      ExitOnForwardFailure yes"
-echo "      ControlMaster auto"
-echo "      ControlPath ~/.ssh/sockets/<alias>-ctrl"
-echo "      ControlPersist 10m"
-echo "(RemoteForward's socket path must be absolute -- tilde expansion is not reliable there.)"
+echo "~/.ssh/config's RemoteForward block(s) are chezmoi-managed too -- see .chezmoidata.yaml's sshRemoteXdgOpenHosts."
