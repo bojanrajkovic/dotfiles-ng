@@ -1,0 +1,40 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- /*
+  Keys listed here are the only ones chezmoi enforces; everything else
+  (model, effortLevel, permissions, enabledPlugins, extraKnownMarketplaces,
+  and any future key) passes through untouched from the live file, since
+  those are mutated by the CLI itself during normal use (installing
+  plugins, approving tool calls, switching models) rather than being
+  hand-curated preferences. To manage another key, add its name here and
+  its value to .chezmoitemplates/claude_settings_desired.
+*/ -}}
+{{- $managedKeys := list
+      "env"
+      "hooks"
+      "statusLine"
+      "syntaxHighlightingDisabled"
+      "alwaysThinkingEnabled"
+      "showClearContextOnPlanAccept"
+      "autoUpdatesChannel"
+      "tui"
+      "skipDangerousModePermissionPrompt"
+      "skipWorkflowUsageWarning"
+      "theme"
+      "editorMode"
+      "outputStyle"
+      "preferredNotifChannel"
+      "teammateMode"
+      "agentPushNotifEnabled"
+      "skipAutoPermissionPrompt"
+      "useAutoModeDuringPlan"
+      "voiceEnabled"
+-}}
+{{- $managed := includeTemplate "claude_settings_desired" . | fromJson -}}
+{{- $result := dict -}}
+{{- if .chezmoi.stdin -}}
+{{-   $result = .chezmoi.stdin | fromJson -}}
+{{- end -}}
+{{- range $key := $managedKeys -}}
+{{-   $_ := set $result $key (get $managed $key) -}}
+{{- end -}}
+{{ $result | toPrettyJson }}
