@@ -1,0 +1,40 @@
+#!/bin/bash
+{{ if ne .chezmoi.os "linux" -}}
+echo "Not Linux, skipping op-forward shim setup"
+exit 0
+{{ end -}}
+
+set -euo pipefail
+
+# Installs the op-forward shim at ~/.local/bin/op, shadowing the real op on
+# PATH. See private_dot_ssh/private_config.tmpl (Mac side) for the
+# RemoteForward that carries requests to the host daemon.
+#
+# op-forward's own apt/dnf/apk package repos (ekovshilovsky.github.io) are
+# dead as of 2026-08-28 -- 404 on every distro's repo file, no gh-pages
+# branch. This downloads the pinned GitHub release tarball directly instead,
+# same mechanism their own scripts/install.sh uses. Bump
+# OP_FORWARD_VERSION to upgrade; `op-forward update` self-updates
+# afterwards regardless of how it was first installed.
+OP_FORWARD_VERSION="0.7.3"
+
+if ! command -v op-forward >/dev/null 2>&1; then
+    echo "Installing op-forward ${OP_FORWARD_VERSION}..."
+    arch="$(uname -m)"
+    case "$arch" in
+        x86_64) arch=amd64 ;;
+        aarch64) arch=arm64 ;;
+        *) echo "Unsupported architecture: $arch" >&2; exit 1 ;;
+    esac
+    tmp="$(mktemp -d)"
+    trap 'rm -rf "$tmp"' EXIT
+    archive="op-forward_${OP_FORWARD_VERSION}_linux_${arch}.tar.gz"
+    curl -fsSL "https://github.com/ekovshilovsky/op-forward/releases/download/v${OP_FORWARD_VERSION}/${archive}" -o "$tmp/$archive"
+    tar -xzf "$tmp/$archive" -C "$tmp"
+    mkdir -p "$HOME/.local/bin"
+    cp "$tmp/op-forward" "$HOME/.local/bin/op-forward"
+    chmod +x "$HOME/.local/bin/op-forward"
+fi
+
+mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/op-forward"
+op-forward install

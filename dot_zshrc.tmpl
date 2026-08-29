@@ -43,6 +43,13 @@ WORDCHARS=${WORDCHARS//[\/]}
 # Initialize mise first (sets up PATH)
 eval "$(~/.local/bin/mise activate zsh)"
 
+{{ if eq .chezmoi.os "linux" -}}
+# Put ~/.local/bin back ahead of mise's shims dir: it holds op-forward's and
+# ssh_remote_xdg_open's shims (op, xdg-open), which must win over the
+# mise-managed real binaries they shadow.
+export PATH="$HOME/.local/bin:$PATH"
+{{ end -}}
+
 # Initialize completion system after mise sets up PATH
 autoload -Uz compinit && compinit
 

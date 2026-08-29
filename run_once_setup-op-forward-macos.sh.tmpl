@@ -1,0 +1,32 @@
+#!/bin/bash
+{{ if ne .chezmoi.os "darwin" -}}
+echo "Not macOS, skipping op-forward daemon setup"
+exit 0
+{{ end -}}
+
+set -euo pipefail
+
+# Installs op-forward's own launchd service (op-forward manages its own
+# plist -- see `op-forward service install`). Listens on tcp://127.0.0.1:18340
+# by default; private_dot_ssh/private_config.tmpl forwards that port to each
+# host in .chezmoidata.yaml's sshForwardedHosts.
+
+if ! command -v op-forward >/dev/null 2>&1; then
+    echo "op-forward not found, installing via Homebrew..."
+    if [ ! -x /opt/homebrew/bin/brew ]; then
+        echo "Homebrew not found, cannot install op-forward" >&2
+        exit 1
+    fi
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+    brew install ekovshilovsky/tap/op-forward
+fi
+
+op-forward service install
+
+echo
+echo "op-forward daemon installed. Token deployment is manual and per-host --"
+echo "run this once per remote (and again if the daemon's refresh token ever"
+echo "needs redeploying):"
+{{ range .sshForwardedHosts -}}
+echo "  scp ~/Library/Caches/op-forward/refresh.token {{ index .aliases 0 }}:.cache/op-forward/refresh.token"
+{{ end -}}

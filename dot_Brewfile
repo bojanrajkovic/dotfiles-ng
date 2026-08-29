@@ -2,10 +2,12 @@
 
 # Taps
 tap "mistertea/et"
+tap "ekovshilovsky/tap"
 
 # Formulae
 brew "emacs"
 brew "mistertea/et/et"
+brew "ekovshilovsky/tap/op-forward"
 brew "socat"
 brew "syncthing"
 

@@ -15,6 +15,7 @@ setup-samba.sh
 .local/bin/xdg-open
 .local/share/ssh_remote_xdg_open
 .ssh/rc
+run_once_setup-op-forward-linux.sh
 {{ end }}
 
 {{ if ne .chezmoi.os "darwin" }}
@@ -24,6 +25,7 @@ run_once_install-brew-packages.sh
 .local/bin/ssh-remote-xdg-open-handler
 run_once_setup-ssh-remote-xdg-open-macos.sh
 .ssh/config
+run_once_setup-op-forward-macos.sh
 {{ end }}
 
 {{ if eq .chezmoi.os "darwin" }}
