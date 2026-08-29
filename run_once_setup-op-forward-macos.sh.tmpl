@@ -11,14 +11,26 @@ set -euo pipefail
 # by default; private_dot_ssh/private_config.tmpl forwards that port to each
 # host in .chezmoidata.yaml's sshForwardedHosts.
 
+if [ ! -x /opt/homebrew/bin/brew ]; then
+    echo "Homebrew not found, cannot install op-forward" >&2
+    exit 1
+fi
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
 if ! command -v op-forward >/dev/null 2>&1; then
     echo "op-forward not found, installing via Homebrew..."
-    if [ ! -x /opt/homebrew/bin/brew ]; then
-        echo "Homebrew not found, cannot install op-forward" >&2
-        exit 1
-    fi
-    eval "$(/opt/homebrew/bin/brew shellenv)"
     brew install ekovshilovsky/tap/op-forward
+fi
+
+# op-forward's own launchd plist hardcodes PATH to
+# /opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin (not
+# configurable). If op is mise-managed, that PATH never finds it, so the
+# daemon fails every request with "op CLI not found in PATH". Same fix as
+# run_once_setup-nerdctl-socket-group.sh.tmpl's link_mise_bin: symlink the
+# mise-resolved binary into Homebrew's bin dir, which is on that PATH.
+MISE_OP="$("$HOME/.local/bin/mise" which op 2>/dev/null || true)"
+if [ -n "$MISE_OP" ]; then
+    ln -sf "$MISE_OP" "$(brew --prefix)/bin/op"
 fi
 
 op-forward service install
