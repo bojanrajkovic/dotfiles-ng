@@ -13,6 +13,9 @@
 - You should always search Outline and local working directories for anything relevant to the
   current conversation before starting work.
 - Flag things that are worth flagging up front, don't just say/insinuate things are "worth flagging"
+- There may be other Claude instances working in the same repository. If `groundcrew` is available,
+  run `groundcrew skills finding-peers` to learn how to find other sessions that might be working
+  in the same repository as you.
 
 # Writing Rules
 
