@@ -102,6 +102,47 @@ These are steps to follow whenever we're building new features, fixing bugs, etc
 * Write/update documentation with the change, don't batch it for later.
 * Use TDD whenever it makes sense to.
 * Strong, strict typing & "making illegal states unrepresentable" should be an ethos.
+  * Don't split off a union member just because one case carries an extra field. If every case
+    can supply it, make it required on all of them. Don't make a field optional when the data
+    always exists.
+  * A type's name must cover everything it reads as: `IgnoreReason` includes every ignore reason.
+  * No `New<X>` input types. Derive the shape with `Pick<>`/`Omit<>`. When that loses a union or a
+    brand, name the type for what's true of the value (`SavedAttachment`, not `NewAttachment`).
+* Prefer an established library (pino, etc.) over a hand-rolled helper. Saving a dependency isn't a
+  goal.
+* When dropping an idea or experiment, close its issue with a one-line reason and remove it from
+  the docs. No ADR for dead ideas; ADRs are for decisions that shape what gets built.
+
+## Code shape
+
+* Keep domain services apart from HTTP/RPC controllers. Controllers parse input, call a service,
+  and map the result.
+* SOLID without overengineering. Don't start with a DI framework or repository interfaces. Pass
+  dependencies by hand until wiring them gets painful, or until there's a second real
+  implementation of the interface.
+* Keep pure decisions (retry or give up, accept or reject) out of the service, so they're testable
+  without its dependencies. In TypeScript, that's an exported function in the domain file that
+  returns a discriminated union. Elsewhere, use whatever the language prefers: a static method or
+  a small value type. Service methods stay short and orchestrate the steps.
+* Blank lines separate a function's phases: write, span attributes, metric, log.
+* Use a child logger per module and per unit of work, with its IDs bound.
+
+## Tracing
+
+* Add a span wherever time can be spent or failure can happen: each I/O boundary and each service
+  operation. Put outcomes and IDs on it as attributes, so traces can be filtered on them.
+* A cheap pure function gets no span; its results become attributes on the caller's span. A pure
+  function that can be slow (rendering, a regex over large input) gets one.
+* Use span events only for rare moments with no duration, such as a scheduled retry.
+* Never put user content (message text, names, URLs) in span attributes or logs.
+
+## Reviews and merging
+
+* After opening a PR, stop and let me review it. Merge only when I say to merge that PR or stack.
+  "Build it" means write the code and open the PR. An earlier "merge it all" covers only the PRs it
+  named.
+* For review, give me one line per PR: its link and what to look at. Don't paste diffs into the
+  reply, and don't run `git show` or `cat` to "show" me something; I can't see tool output.
 
 # Writing Commits As Me
 
