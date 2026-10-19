@@ -14,6 +14,7 @@ setup-samba.sh
 .local/bin/open-local
 .local/bin/xdg-open
 .local/bin/op-mac
+.cache/op-gate
 .local/share/ssh_remote_xdg_open
 .ssh/rc
 run_once_setup-op-forward-linux.sh

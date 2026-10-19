@@ -16,11 +16,13 @@
 - There may be other Claude instances working in the same repository. If `groundcrew` is available,
   run `groundcrew skills finding-peers` to learn how to find other sessions that might be working
   in the same repository as you.
-- 1Password: if `~/.local/bin/op-forward` exists, `op` is a shim that forwards to my Mac over SSH,
-  where I approve with Touch ID. Check the tunnel first with
-  `curl -fsm2 http://127.0.0.1:18340/health`. If it fails, no Mac is connected, so ask me before
-  using `op`. If an `op` call hangs or times out, I'm probably away from the Mac. Don't retry in
-  a loop; tell me what needs approving.
+- 1Password on Linux: `op` goes to op-gate, which asks me to approve each call on my phone. It
+  allows only `read`, `whoami`, `item get/list`, `vault get/list`, and `document get`, with the
+  subcommand first (`op item get X --format json`, not `op --format json item get X`). It can't
+  read the Employee or Private vaults and can't write. For those, use `op-mac`, which waits for
+  Touch ID on my Mac. Check `curl -fsm2 http://127.0.0.1:18340/health` first; if it fails, no Mac
+  is connected, so ask me. If a request is denied or times out, tell me what it needed and don't
+  retry.
 
 # Writing Rules
 
