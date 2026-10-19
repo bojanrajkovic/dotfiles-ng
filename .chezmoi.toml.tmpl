@@ -9,9 +9,12 @@
 
 [onepassword]
 {{- if eq .chezmoi.os "linux" }}
-  # op-forward's shim (run_once_setup-op-forward-linux.sh) proxies to the
-  # Mac's biometric-unlocked op, falling back to the real op if the tunnel is down.
-  command = {{ joinPath .chezmoi.homeDir ".local/bin/op" | quote }}
+  # op-mac pins op-forward's shim (run_once_setup-op-forward-linux.sh) to the
+  # Mac tunnel, even when chezmoi runs inside a Claude session whose env routes
+  # op to op-gate, which can't read the Shared or Employee vaults. On a fresh
+  # machine op-mac doesn't exist until the first apply, so fall back to the shim.
+  {{- $opMac := joinPath .chezmoi.homeDir ".local/bin/op-mac" }}
+  command = {{ if stat $opMac }}{{ $opMac | quote }}{{ else }}{{ joinPath .chezmoi.homeDir ".local/bin/op" | quote }}{{ end }}
 {{- else }}
   command = {{ output "mise" "which" "op" | trim | quote }}
 {{- end }}

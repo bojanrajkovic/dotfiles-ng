@@ -13,6 +13,7 @@ run_once_setup-nerdctl-socket-group.sh
 setup-samba.sh
 .local/bin/open-local
 .local/bin/xdg-open
+.local/bin/op-mac
 .local/share/ssh_remote_xdg_open
 .ssh/rc
 run_once_setup-op-forward-linux.sh
