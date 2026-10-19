@@ -8,6 +8,13 @@
 {{ end -}}
 
 [onepassword]
+{{- if eq .chezmoi.os "linux" }}
+  # op-forward's shim (run_once_setup-op-forward-linux.sh) proxies to the
+  # Mac's biometric-unlocked op, falling back to the real op if the tunnel is down.
+  command = {{ joinPath .chezmoi.homeDir ".local/bin/op" | quote }}
+{{- else }}
   command = {{ output "mise" "which" "op" | trim | quote }}
+{{- end }}
   mode = "account"
-  prompt = true
+  # The proxy rejects `op signin`; the Mac's op handles auth.
+  prompt = {{ ne .chezmoi.os "linux" }}
