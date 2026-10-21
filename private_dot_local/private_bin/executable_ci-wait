@@ -16,6 +16,10 @@ once at startup, so a later push doesn't change what ci-wait watches.
 GitHub creates some checks late, such as workflow_run chains. ci-wait reports
 only after every check is complete and the newest finished --settle seconds ago.
 
+A check that ran more than once on the commit counts only its newest run: a
+re-run job, or a newer workflow run that cancelled an older one. A run that was
+cancelled and never replaced still fails.
+
 Options:
   -R, --repo   owner/repo to query (default: $GH_REPO, then gh's default repo)
   --interval   seconds between polls (default 10)
@@ -135,6 +139,18 @@ poll() {
 
 count() { awk -F'\t' -v b="$1" '$1 == b' <<<"$rows" | grep -c . || true; }
 
+# Keeps only the newest run of each check (same workflow and name): job IDs only grow, so it has the
+# highest. Commit statuses have no job ID, and the rollup already holds only each one's latest state.
+newest_runs() {
+	awk -F'\t' '
+		$7 == "" { print; next }
+		{
+			key = $4 FS $3
+			if (!(key in job) || $7 + 0 > job[key] + 0) { job[key] = $7; row[key] = $0 }
+		}
+		END { for (key in row) print row[key] }'
+}
+
 report() {
 	echo "ci-wait: $repo @ ${sha:0:12}: $1 ($passed passed, $failed failed, $pending pending)"
 	[[ -n $rows ]] || return 0
@@ -166,6 +182,7 @@ while :; do
 		continue
 	fi
 	api_errors=0
+	rows=$(newest_runs <<<"$rows")
 	passed=$(count pass) failed=$(count fail) pending=$(count pending)
 	total=$((passed + failed + pending))
 	elapsed=$((SECONDS - start))
