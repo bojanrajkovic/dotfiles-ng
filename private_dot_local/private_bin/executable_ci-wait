@@ -1,0 +1,199 @@
+#!/usr/bin/env bash
+# Waits for every CI check on one commit to finish, then reports each check.
+set -Eeuo pipefail
+
+usage() {
+	cat <<'EOF'
+Usage: ci-wait [-R owner/repo] [--interval SEC] [--settle SEC] [--timeout SEC] [TARGET]
+
+Waits until every check run and commit status on a commit has finished, then
+prints one line per check: result, name, workflow, URL, and run/job IDs.
+
+TARGET is a PR number (123 or #123), a PR URL, a branch, a tag, or a SHA. The
+default is local HEAD, which must already be pushed. TARGET resolves to a SHA
+once at startup, so a later push doesn't change what ci-wait watches.
+
+GitHub creates some checks late, such as workflow_run chains. ci-wait reports
+only after every check is complete and the newest finished --settle seconds ago.
+
+Options:
+  -R, --repo   owner/repo to query (default: $GH_REPO, then gh's default repo)
+  --interval   seconds between polls (default 10)
+  --settle     seconds the last completion must age before reporting (default 30)
+  --timeout    seconds to wait before giving up (default 3600)
+
+Exit codes:
+  0  every check passed (success, neutral, or skipped)
+  1  at least one check failed, errored, was cancelled, or timed out
+  2  usage error, TARGET not found, or repeated GitHub API errors
+  3  --timeout reached with checks still pending
+  4  no checks appeared within 120 seconds
+EOF
+}
+
+die() {
+	echo "ci-wait: $*" >&2
+	exit 2
+}
+# Any unexpected failure must not exit 1, which means "CI failed".
+trap 'die "unexpected error on line $LINENO"' ERR
+
+repo=${GH_REPO:-} interval=10 settle=30 timeout=3600 target=
+while (($#)); do
+	case $1 in
+	-R | --repo | --interval | --settle | --timeout)
+		(($# >= 2)) || die "$1 needs a value"
+		case $1 in
+		-R | --repo) repo=$2 ;;
+		--interval) interval=$2 ;;
+		--settle) settle=$2 ;;
+		--timeout) timeout=$2 ;;
+		esac
+		shift 2
+		;;
+	-h | --help) usage && exit 0 ;;
+	-*) die "unknown option $1 (see --help)" ;;
+	*)
+		[[ -z $target ]] || die "only one TARGET allowed"
+		target=$1
+		shift
+		;;
+	esac
+done
+for n in "$interval" "$settle" "$timeout"; do
+	[[ $n =~ ^[0-9]+$ ]] || die "expected a whole number of seconds, got '$n'"
+done
+((interval > 0)) || die "--interval must be at least 1"
+
+if [[ -z $repo ]]; then
+	repo=$(gh repo view --json nameWithOwner -q .nameWithOwner) || die "can't detect the repo; pass -R owner/repo"
+fi
+[[ $repo == */* ]] || die "repo must be owner/repo, got '$repo'"
+
+if [[ $target =~ ^#?[0-9]+$ || $target == https://*/pull/* ]]; then
+	sha=$(gh pr view "${target#\#}" -R "$repo" --json headRefOid -q .headRefOid) || die "PR $target not found in $repo"
+else
+	if [[ -z $target ]]; then
+		target=$(git rev-parse HEAD 2>/dev/null) || die "not in a git repo; pass a TARGET"
+	fi
+	sha=$(gh api "repos/$repo/commits/${target//\//%2F}" -q .sha 2>/dev/null) ||
+		die "$target not found in $repo (not pushed yet, or wrong repo?)"
+fi
+
+# shellcheck disable=SC2016 # GraphQL variables, not shell ones.
+query='query($owner: String!, $name: String!, $oid: GitObjectID!, $endCursor: String) {
+  repository(owner: $owner, name: $name) {
+    object(oid: $oid) {
+      ... on Commit {
+        statusCheckRollup {
+          contexts(first: 100, after: $endCursor) {
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              __typename
+              ... on CheckRun {
+                name status conclusion detailsUrl databaseId completedAt
+                checkSuite { app { slug } workflowRun { databaseId workflow { name } } }
+              }
+              ... on StatusContext { context state targetUrl createdAt }
+            }
+          }
+        }
+      }
+    }
+  }
+}'
+
+# One TSV row per check: bucket, raw result, name, workflow, URL, run ID, job ID,
+# seconds since it finished (empty while pending).
+# Bucket mapping: SUCCESS/NEUTRAL/SKIPPED pass. Everything else that finished
+# fails, including CANCELLED, TIMED_OUT, ACTION_REQUIRED, STALE, STARTUP_FAILURE.
+# shellcheck disable=SC2016 # jq variables, not shell ones.
+rows_filter='
+  .data.repository.object.statusCheckRollup.contexts.nodes // [] | .[] |
+  if .__typename == "CheckRun" then
+    (if .status != "COMPLETED" then "pending"
+     elif (.conclusion | IN("SUCCESS", "NEUTRAL", "SKIPPED")) then "pass"
+     else "fail" end) as $bucket |
+    [$bucket, (.conclusion // .status), .name,
+     (.checkSuite.workflowRun.workflow.name // .checkSuite.app.slug // ""),
+     (.detailsUrl // ""),
+     (.checkSuite.workflowRun.databaseId // "" | tostring),
+     (.databaseId // "" | tostring),
+     (if $bucket == "pending" then "" else (now - (.completedAt | fromdate) | floor | tostring) end)]
+  else
+    (if .state == "SUCCESS" then "pass"
+     elif (.state | IN("PENDING", "EXPECTED")) then "pending"
+     else "fail" end) as $bucket |
+    [$bucket, .state, .context, "commit status", (.targetUrl // ""), "", "",
+     (if $bucket == "pending" then "" else (now - (.createdAt | fromdate) | floor | tostring) end)]
+  end | @tsv'
+
+poll() {
+	gh api graphql --paginate -f owner="${repo%%/*}" -f name="${repo#*/}" -f oid="$sha" \
+		-f query="$query" --jq "$rows_filter"
+}
+
+count() { awk -F'\t' -v b="$1" '$1 == b' <<<"$rows" | grep -c . || true; }
+
+report() {
+	echo "ci-wait: $repo @ ${sha:0:12}: $1 ($passed passed, $failed failed, $pending pending)"
+	[[ -n $rows ]] || return 0
+	echo
+	{
+		printf 'RESULT\tSTATE\tCHECK\tWORKFLOW\tURL\tRUN_ID\tJOB_ID\n'
+		# Fail first, then pending, then pass. "-" fills empty cells, which column would collapse.
+		awk -F'\t' -v OFS='\t' '{
+			for (i = 1; i <= 7; i++) if ($i == "") $i = "-"
+			print ($1 == "fail" ? 0 : $1 == "pending" ? 1 : 2), toupper($1), $2, $3, $4, $5, $6, $7
+		}' <<<"$rows" | sort -t$'\t' -k1,1n -k4,4 | cut -f2-
+	} | column -t -s$'\t'
+	local logs
+	logs=$(awk -F'\t' '$1 == "fail" && $6 != "" { print "  gh run view " $6 " --job " $7 " --log-failed" }' <<<"$rows")
+	if [[ -n $logs ]]; then
+		echo
+		echo "Failed job logs (add -R $repo outside the repo):"
+		echo "$logs"
+	fi
+}
+
+echo "ci-wait: watching $repo @ $sha" >&2
+start=$SECONDS api_errors=0 last_summary=
+while :; do
+	if ! rows=$(poll); then
+		((++api_errors < 5)) || die "GitHub API failed 5 polls in a row"
+		echo "ci-wait: GitHub API call failed; retrying" >&2
+		sleep "$interval"
+		continue
+	fi
+	api_errors=0
+	passed=$(count pass) failed=$(count fail) pending=$(count pending)
+	total=$((passed + failed + pending))
+	elapsed=$((SECONDS - start))
+
+	summary="$passed passed, $failed failed, $pending pending"
+	if [[ $summary != "$last_summary" ]]; then
+		echo "ci-wait: [${elapsed}s] $summary" >&2
+		last_summary=$summary
+	fi
+
+	if ((total > 0 && pending == 0)); then
+		newest=$(cut -f8 <<<"$rows" | sort -n | head -1)
+		if ((newest >= settle)); then
+			if ((failed > 0)); then
+				report FAILED
+				exit 1
+			fi
+			report PASSED
+			exit 0
+		fi
+	fi
+	if ((total == 0 && elapsed >= 120)); then
+		report "NO CHECKS"
+		exit 4
+	fi
+	if ((elapsed >= timeout)); then
+		report "TIMED OUT"
+		exit 3
+	fi
+	sleep "$interval"
+done
