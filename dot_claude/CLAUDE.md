@@ -150,6 +150,13 @@ These are steps to follow whenever we're building new features, fixing bugs, etc
   named.
 * For review, give me one line per PR: its link and what to look at. Don't paste diffs into the
   reply, and don't run `git show` or `cat` to "show" me something; I can't see tool output.
+* To wait for CI, run `ci-wait` (in `~/.local/bin`). Don't write your own polling loop or use
+  `gh pr checks --watch`, which exits early when checks haven't registered yet. `ci-wait` takes a
+  PR number, PR URL, branch, or SHA, and defaults to local HEAD, which must be pushed. It waits for
+  every check run and commit status, including late ones, then prints each check's result, URL,
+  and run/job IDs, plus `gh run view --log-failed` commands for failed jobs. Exit codes: 0 passed,
+  1 failed, 2 bad input or API errors, 3 timed out, 4 no checks. CI can take a while, so run it in
+  the background. See `ci-wait --help` for options.
 
 # Writing Commits As Me
 
