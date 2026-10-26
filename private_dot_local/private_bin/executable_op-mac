@@ -3,4 +3,6 @@
 # Claude sessions route plain `op` to op-gate (phone approval) through
 # OP_FORWARD_* in Claude's settings; this overrides them. Use it for the
 # Employee and Private vaults and for writes, which op-gate can't do.
-OP_FORWARD_ADDR=tcp://127.0.0.1:18340 OP_FORWARD_TOKEN_DIR="$HOME/.cache/op-forward" exec "$HOME/.local/bin/op" "$@"
+# --no-color: op on the Mac colors its output (it sees a terminal), which breaks JSON
+# parsers here. NO_COLOR doesn't cross the tunnel, so pass the flag.
+OP_FORWARD_ADDR=tcp://127.0.0.1:18340 OP_FORWARD_TOKEN_DIR="$HOME/.cache/op-forward" exec "$HOME/.local/bin/op" --no-color "$@"
