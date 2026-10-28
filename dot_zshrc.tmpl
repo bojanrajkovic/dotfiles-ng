@@ -68,10 +68,12 @@ eval "$(starship init zsh)"
 export GITHUB_PERSONAL_ACCESS_TOKEN="$(gh auth token)"
 
 {{ if eq .chezmoi.os "linux" -}}
-# Auto-attach to Zellij on SSH/Mosh login
-if [[ -z "$ZELLIJ" ]] && [[ -n "$SSH_CONNECTION" || -n "$SSH_TTY" ]]; then
-    # Find a session that's not 'main'
-    local session=$(zellij list-sessions --no-formatting 2>/dev/null | grep -v '^main' | head -1 | cut -d' ' -f1)
+# Auto-attach to Zellij on SSH/Mosh login. `LC_NO_ZELLIJ=1 ssh <host>` skips it
+# (ssh forwards LC_* by default) for a plain shell when zellij itself is broken.
+if [[ -z "$ZELLIJ" && -z "$LC_NO_ZELLIJ" ]] && [[ -n "$SSH_CONNECTION" || -n "$SSH_TTY" ]]; then
+    # Newest live session that isn't 'main'. Exited sessions stay listed (for
+    # resurrection) and would otherwise win.
+    local session=$(zellij list-sessions --no-formatting --reverse 2>/dev/null | grep -v 'EXITED' | grep -v '^main ' | head -1 | cut -d' ' -f1)
     if [[ -n "$session" ]]; then
         zellij attach "$session"
     else
@@ -82,7 +84,10 @@ if [[ -z "$ZELLIJ" ]] && [[ -n "$SSH_CONNECTION" || -n "$SSH_TTY" ]]; then
 fi
 {{ end -}}
 
-alias ls='eza'
+alias ls='eza --icons=auto --group-directories-first'
+alias ll='eza -lh --icons=auto --group-directories-first'
+alias tree='eza --tree'
+alias top='btm'
 alias cat='bat -p'
 # find and grep are deliberately NOT aliased to fd/rg — too many scripts, agents,
 # and third-party skills emit `grep -E` or `find -type f` and the aliases break
@@ -120,16 +125,34 @@ export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-ran
 # Only use uv-managed Python
 export UV_MANAGED_PYTHON=1
 
-# Add our local ed25519 key to ssh-agent
-ssh-add
+# Add our local ed25519 key to ssh-agent, once per agent.
+ssh-add -l >/dev/null 2>&1 || ssh-add
+
+# Run a command and pick from its output with fzf: `fuzz kubectl get pods -A`
+function fuzz() {
+  eval "$@" | fzf
+}
+
+# Flap the router's WAN interface (salem, 172.16.0.1).
+function bounce_internet() {
+  ssh -A root@172.16.0.1 "ip link set eth9 down && sleep 5 && ip link set eth9 up"
+}
 
 function vnclaude() {
   ssh -f -N -L 5900:localhost:5900 brajkovic@junction.gaur-kardashev.ts.net
 }
 
-# zsh-syntax-highlighting - must be last
+# zsh-syntax-highlighting, then history-substring-search: these two must load
+# last, in this order (substring search wraps syntax-highlighting's widgets).
 source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source ~/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh
+# Type a prefix, then Up/Down (or Ctrl-P/Ctrl-N) cycles matching history.
+zmodload -F zsh/terminfo +p:terminfo
+for key ('^[[A' '^P' ${terminfo[kcuu1]}) bindkey ${key} history-substring-search-up
+for key ('^[[B' '^N' ${terminfo[kcud1]}) bindkey ${key} history-substring-search-down
+unset key
 {{ if eq .chezmoi.os "linux" -}}
-export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+# Fedora's chromium package installs chromium-browser; Debian's installs chromium.
+export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH={{ if eq (get .chezmoi.osRelease "id") "fedora" }}/usr/bin/chromium-browser{{ else }}/usr/bin/chromium{{ end }}
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 {{ end -}}
