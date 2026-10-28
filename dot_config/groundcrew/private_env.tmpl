@@ -1,2 +1,10 @@
-PUSHOVER_USER={{ onepasswordRead "op://Dotfiles/Groundcrew Pushover/PUSHOVER_USER" }}
-PUSHOVER_TOKEN={{ onepasswordRead "op://Dotfiles/Groundcrew Pushover/PUSHOVER_TOKEN" }}
+{{- /* One 1Password call per item: each op call is a Touch ID prompt on Linux.
+       The PUSHOVER_* fields are top-level custom fields (no section), which
+       neither onepasswordItemFields nor onepasswordDetailsFields returns, so
+       index the raw item's fields by label. */ -}}
+{{- $pushover := dict -}}
+{{- range (onepassword "Groundcrew Pushover" "Dotfiles").fields -}}
+{{-   $_ := set $pushover .label (get . "value") -}}
+{{- end -}}
+PUSHOVER_USER={{ $pushover.PUSHOVER_USER }}
+PUSHOVER_TOKEN={{ $pushover.PUSHOVER_TOKEN }}
