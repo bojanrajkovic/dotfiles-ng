@@ -23,6 +23,8 @@
   Touch ID on my Mac. Check `curl -fsm2 http://127.0.0.1:18340/health` first; if it fails, no Mac
   is connected, so ask me. If a request is denied or times out, tell me what it needed and don't
   retry.
+- Use the Edit/Update/Read/Write tools instead of editing files via Bash scripts, except for bulk
+  edits that change many files at once.
 
 # Writing Rules
 
