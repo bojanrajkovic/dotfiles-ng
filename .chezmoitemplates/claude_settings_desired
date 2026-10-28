@@ -45,7 +45,7 @@
   "theme": "dark-daltonized",
   "editorMode": "normal",
   "outputStyle": "Concise",
-  "preferredNotifChannel": {{ if eq .chezmoi.hostname "junction" }}"kitty"{{ else }}"notifications_disabled"{{ end }},
+  "preferredNotifChannel": {{ if has .chezmoi.hostname (list "junction" "hagal") }}"kitty"{{ else }}"notifications_disabled"{{ end }},
   "teammateMode": "auto",
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
