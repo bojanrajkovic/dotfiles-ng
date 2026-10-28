@@ -9,3 +9,4 @@ sshForwardedHosts:
   - aliases:
       - junction
       - junction.home.coderinserepeat.com
+      - junction.gaur-kardashev.ts.net

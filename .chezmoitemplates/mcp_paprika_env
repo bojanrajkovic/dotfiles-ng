@@ -1,5 +1,5 @@
 PAPRIKA_EMAIL=brajkovic+paprika@coderinserepeat.com
-PAPRIKA_PASSWORD={{ onepasswordRead "op://Shared/Paprika Sync/password" }}
+PAPRIKA_PASSWORD={{ onepasswordRead "op://Dotfiles/Paprika Sync/password" }}
 OPENAI_BASE_URL=https://openrouter.ai/api/v1
-OPENAI_API_KEY={{ onepasswordRead "op://Employee/OpenRouter Paprika MCP API Key/credential" }}
+OPENAI_API_KEY={{ onepasswordRead "op://Agent/OpenRouter Paprika MCP API Key/credential" }}
 EMBEDDING_MODEL=openai/text-embedding-3-large
