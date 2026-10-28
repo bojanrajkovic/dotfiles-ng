@@ -1,10 +1,16 @@
 #!/bin/bash
-{{ if ne (get .chezmoi.osRelease "id") "fedora" -}}
-echo "Not Fedora, skipping nerdctl/buildkitd setup"
+{{ if ne .chezmoi.os "linux" -}}
+echo "Not Linux, skipping nerdctl/buildkitd setup"
 exit 0
 {{ end -}}
 
 set -euo pipefail
+
+# buildkitd runs against k3s's containerd, so hosts without k3s skip this.
+if ! systemctl list-unit-files k3s.service --no-legend 2>/dev/null | grep -q k3s.service; then
+    echo "k3s not installed, skipping nerdctl/buildkitd setup"
+    exit 0
+fi
 
 # Set up nerdctl + buildkitd for use with k3s/containerd without interactive sudo.
 #

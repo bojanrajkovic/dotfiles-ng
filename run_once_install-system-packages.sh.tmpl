@@ -1,11 +1,33 @@
+{{- $id := get .chezmoi.osRelease "id" -}}
+{{- $debian := or (eq $id "debian") (contains "debian" (get .chezmoi.osRelease "idLike" | default "")) -}}
 #!/bin/bash
-{{ if ne (get .chezmoi.osRelease "id") "fedora" -}}
-echo "Not Fedora, skipping package installation"
+{{ if not (or (eq $id "fedora") $debian) -}}
+echo "Unsupported distro {{ $id }}, skipping package installation"
 exit 0
 {{ end -}}
 
 set -euo pipefail
 
+{{ if $debian -}}
+echo "Installing Debian packages..."
+
+# emacs-nox: hagal is headless. tailscale needs Tailscale's own apt repo, and
+# Syncthing runs as a k8s pod on hagal, so neither is here.
+sudo apt-get update
+sudo apt-get install -y \
+    zsh \
+    emacs-nox \
+    htop \
+    fastfetch \
+    mosh \
+    libperl-dev \
+    libssl-dev \
+    tmux \
+    units \
+    socat \
+    mediainfo \
+    chromium
+{{ else -}}
 echo "Installing Fedora packages..."
 
 sudo dnf install -y \
@@ -22,7 +44,8 @@ sudo dnf install -y \
     openssl-devel \
     tmux \
     units \
-    socat
+    socat \
+    mediainfo
 
 echo "Installing Playwright/Chromium system dependencies..."
 sudo dnf install -y \
@@ -48,11 +71,11 @@ sudo dnf install -y \
     libXi \
     gtk3 \
     cairo-gobject
-
+{{ end }}
 # Run Playwright's own dependency installer as a fallback/catch-all
 if command -v npx &>/dev/null; then
     echo "Running npx playwright install-deps..."
     npx playwright install-deps || echo "Warning: playwright install-deps failed, system deps were installed manually above"
 fi
 
-echo "Fedora package installation complete!"
+echo "System package installation complete!"
