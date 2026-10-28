@@ -117,4 +117,17 @@ PLIST
 
 {{ range .sshForwardedHosts -}}
 setup_host {{ index .aliases 0 | quote }} {{ .opForwardPort }}
-{{ end -}}
+{{ end }}
+# Stop daemons for hosts no longer in sshForwardedHosts.
+KEEP=" {{ range .sshForwardedHosts }}{{ index .aliases 0 }} {{ end }}"
+for plist in "$AGENTS"/com.op-forward.*.plist; do
+    [ -e "$plist" ] || continue
+    host="$(basename "$plist" .plist)"
+    host="${host#com.op-forward.}"
+    [ "$host" = daemon ] && continue
+    case "$KEEP" in *" $host "*) continue ;; esac
+    echo "Removing op-forward daemon for $host (no longer in sshForwardedHosts)"
+    launchctl bootout "gui/$(id -u)/com.op-forward.$host" 2>/dev/null || true
+    rm -f "$plist"
+    rm -rf "${CACHE:?}/$host"
+done
