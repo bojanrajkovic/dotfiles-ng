@@ -8,6 +8,7 @@ tap "ekovshilovsky/tap"
 brew "emacs"
 brew "mistertea/et/et"
 brew "ekovshilovsky/tap/op-forward"
+brew "media-info"
 brew "socat"
 brew "syncthing"
 
