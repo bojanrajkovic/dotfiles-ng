@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# credential_process helper: print credentials for an SSO profile, logging in first if needed.
+#
+# Usage (in ~/.aws/config):
+#   [profile homelab-admin]
+#   credential_process = aws-sso-auto homelab-admin-sso
+#
+# The named profile holds the real SSO settings. This script runs
+# `aws configure export-credentials` against it. If that fails (no token, or the refresh
+# token expired), it runs `aws sso login` for the profile's sso_session and tries once more.
+#
+# credential_process callers capture stdout as the credential JSON, and botocore also
+# captures stderr, so login prompts go to /dev/tty. With no terminal, the script fails
+# instead of starting a login nobody can complete.
+set -euo pipefail
+
+if [ $# -ne 1 ]; then
+  echo "usage: aws-sso-auto <sso-profile>" >&2
+  exit 2
+fi
+profile="$1"
+
+export_creds() {
+  aws configure export-credentials --profile "$profile" --format process 2>/dev/null
+}
+
+if export_creds; then
+  exit 0
+fi
+
+if ! { : >/dev/tty; } 2>/dev/null; then
+  echo "aws-sso-auto: SSO login needed for '$profile', but there's no terminal. Run: aws sso login --profile $profile" >&2
+  exit 1
+fi
+
+session=$(aws configure get sso_session --profile "$profile")
+
+# Parallel callers (Terraform providers, xargs) can hit an expired token at the same time.
+# The lock makes one of them log in; the rest wait, then pick up the fresh token. macOS
+# doesn't ship flock, so there the callers may each start a login.
+if command -v flock >/dev/null; then
+  lock="${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/aws-sso-auto-${session}.lock"
+  exec 9>"$lock"
+  flock 9
+
+  if export_creds; then
+    exit 0
+  fi
+fi
+
+# The default login flow redirects the browser to a callback on this host's 127.0.0.1. Over
+# SSH, xdg-open forwards the URL to the client machine, which can't reach that callback, so
+# use the device-code flow. It still opens the browser, with the code filled in.
+login_args=(--sso-session "$session")
+if [ -n "${SSH_CONNECTION:-}" ]; then
+  login_args+=(--use-device-code)
+elif [ "$(uname -s)" = Linux ]; then
+  if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ]; then
+    login_args+=(--use-device-code)
+  fi
+  # Python's webbrowser only tries xdg-open when a display is set; over SSH this reaches the
+  # xdg-open tunnel instead.
+  export BROWSER="${BROWSER:-xdg-open}"
+fi
+
+echo "aws-sso-auto: logging in to SSO session '$session' for profile '$profile'" >/dev/tty
+aws sso login "${login_args[@]}" </dev/tty >/dev/tty 2>&1
+
+export_creds

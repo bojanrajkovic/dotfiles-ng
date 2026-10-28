@@ -1,0 +1,40 @@
+[sso-session homelab]
+sso_start_url = https://ssoins-722393dec816a9a4.portal.us-east-1.app.aws
+sso_region = us-east-1
+sso_registration_scopes = sso:account:access
+
+# Profiles you use. Each one calls aws-sso-auto, which logs in to SSO when the token
+# is missing or expired, then returns credentials from the matching -sso profile.
+[default]
+credential_process = {{ .chezmoi.homeDir }}/.local/bin/aws-sso-auto default-sso
+region = us-east-1
+
+[profile homelab-admin]
+credential_process = {{ .chezmoi.homeDir }}/.local/bin/aws-sso-auto homelab-admin-sso
+region = us-east-1
+
+[profile homelab-readonly]
+credential_process = {{ .chezmoi.homeDir }}/.local/bin/aws-sso-auto homelab-readonly-sso
+region = us-east-1
+
+# SSO settings behind the profiles above. Use these with `aws sso login` / `logout`.
+[profile default-sso]
+sso_session = homelab
+sso_account_id = 342356231849
+sso_role_name = PowerUser
+region = us-east-1
+
+[profile homelab-admin-sso]
+sso_session = homelab
+sso_account_id = 342356231849
+sso_role_name = Administrator
+region = us-east-1
+
+[profile homelab-readonly-sso]
+sso_session = homelab
+sso_account_id = 342356231849
+sso_role_name = ReadOnly
+region = us-east-1
+
+[profile loupe-management]
+region = us-east-2
