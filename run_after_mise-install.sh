@@ -14,5 +14,7 @@ echo "Installing mise-managed tools..."
 echo "mise tool installation complete!"
 
 if "$MISE" which git-lfs &>/dev/null; then
-    git lfs install --skip-repo
+    # mise exec puts git-lfs on PATH even when chezmoi runs outside an
+    # activated shell (e.g. the first apply on a fresh host).
+    "$MISE" exec -- git lfs install --skip-repo
 fi
