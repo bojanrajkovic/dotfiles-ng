@@ -61,9 +61,12 @@ install_linux() {
     if [ ! -f "$TOKEN_DIR/refresh.token" ]; then
         cat >&2 <<EOF
 op-forward has no refresh token, so chezmoi can't read 1Password yet.
-On the Mac, run:
+The Mac runs one op-forward daemon per host. If $(hostname -s) isn't in
+.chezmoidata.yaml's sshForwardedHosts yet, add it (with an opForwardPort)
+and run \`chezmoi apply\` on the Mac; that starts its daemon and pushes the
+token here. Otherwise, on the Mac, run:
 
-    scp ~/Library/Caches/op-forward/refresh.token $(hostname):.cache/op-forward/refresh.token
+    scp ~/Library/Caches/op-forward/$(hostname -s)/refresh.token $(hostname -s):.cache/op-forward/refresh.token
 
 Then reconnect over SSH (so the 18340 RemoteForward is up) and rerun chezmoi.
 EOF

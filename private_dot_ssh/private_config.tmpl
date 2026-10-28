@@ -3,7 +3,7 @@ Include {{ .chezmoi.homeDir }}/.colima/ssh_config
 {{ range .sshForwardedHosts }}
 Host {{ .aliases | join " " }}
     RemoteForward 127.0.0.1:19999 {{ $.chezmoi.homeDir }}/.ssh/sockets/ssh_remote_xdg_open.sock
-    RemoteForward 127.0.0.1:18340 127.0.0.1:18340
+    RemoteForward 127.0.0.1:18340 127.0.0.1:{{ .opForwardPort }}
     ExitOnForwardFailure yes
     ControlMaster auto
     ControlPath ~/.ssh/sockets/{{ index .aliases 0 }}-ctrl

@@ -5,16 +5,23 @@
 # machine, since they share one ControlPath (keyed on the first alias) and
 # one host_alias value (each remote's own hostname, rendered independently
 # on that machine).
+#
+# opForwardPort is the Mac-side port of that host's own op-forward daemon
+# (see run_onchange_after_setup-op-forward-macos.sh.tmpl). Keep it unique and
+# stable: changing it restarts the daemon and redeploys the host's token.
 sshForwardedHosts:
   - aliases:
       - junction
       - junction.home.coderinserepeat.com
       - junction.gaur-kardashev.ts.net
+    opForwardPort: 18341
   - aliases:
       - hagal
       - hagal.gaur-kardashev.ts.net
       - hagal.home.coderinserepeat.com
+    opForwardPort: 18342
   - aliases:
       - rossak
       - rossak.gaur-kardashev.ts.net
       - rossak.home.coderinserepeat.com
+    opForwardPort: 18343
