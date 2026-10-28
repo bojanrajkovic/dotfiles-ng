@@ -31,3 +31,21 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+[init]
+	defaultBranch = main
+[push]
+	default = current
+[rerere]
+	enabled = true
+# difftastic is opt-in through `git dft` / `git difftool`, so plain `git diff`
+# output stays parseable for scripts and agents.
+[diff]
+	tool = difftastic
+[difftool]
+	prompt = false
+[difftool "difftastic"]
+	cmd = difft "$LOCAL" "$REMOTE"
+[pager]
+	difftool = true
+[alias]
+	dft = difftool
