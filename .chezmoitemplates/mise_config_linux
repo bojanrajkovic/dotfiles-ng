@@ -1,3 +1,6 @@
 [tools]
 "aqua:containerd/nerdctl" = { version = "latest", postinstall = "sudo ln -sf $MISE_TOOL_INSTALL_PATH/nerdctl /usr/local/bin/nerdctl" }
-"aqua:moby/buildkit" = { version = "latest", postinstall = "sudo ln -sf $MISE_TOOL_INSTALL_PATH/bin/buildctl /usr/local/bin/buildctl" }
+# github: backend, not aqua: aqua's buildkit asset template ("AssetWithoutExt")
+# fails in mise 2026.10. github: flattens the tarball, so buildctl sits at the
+# install root.
+"github:moby/buildkit" = { version = "latest", postinstall = "sudo ln -sf $MISE_TOOL_INSTALL_PATH/buildctl /usr/local/bin/buildctl" }
