@@ -20,8 +20,3 @@ sshForwardedHosts:
       - hagal.gaur-kardashev.ts.net
       - hagal.home.coderinserepeat.com
     opForwardPort: 18342
-  - aliases:
-      - rossak
-      - rossak.gaur-kardashev.ts.net
-      - rossak.home.coderinserepeat.com
-    opForwardPort: 18343
