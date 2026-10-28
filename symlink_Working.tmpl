@@ -1,1 +1,6 @@
+{{- /* hagal's Syncthing folder is ~/SyncThing (served by a k8s pod); other hosts use ~/Sync. */ -}}
+{{- if stat (joinPath .chezmoi.homeDir "SyncThing") -}}
+./SyncThing/Working
+{{- else -}}
 ./Sync/Working
+{{- end -}}
