@@ -10,3 +10,11 @@ sshForwardedHosts:
       - junction
       - junction.home.coderinserepeat.com
       - junction.gaur-kardashev.ts.net
+  - aliases:
+      - hagal
+      - hagal.gaur-kardashev.ts.net
+      - hagal.home.coderinserepeat.com
+  - aliases:
+      - rossak
+      - rossak.gaur-kardashev.ts.net
+      - rossak.home.coderinserepeat.com

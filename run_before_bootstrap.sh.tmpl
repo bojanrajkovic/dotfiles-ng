@@ -1,15 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-# Install mise if not present
-if ! command -v mise &>/dev/null && [ ! -x "${HOME}/.local/bin/mise" ]; then
-    echo "Installing mise..."
-    curl -fsSL https://mise.run | sh
-fi
+# mise and op are installed earlier, by .install-op.sh (read-source-state hook).
 
-MISE="${HOME}/.local/bin/mise"
-
-# Install critical tools needed for chezmoi apply
 {{ if eq .chezmoi.os "darwin" -}}
 # Install Xcode Command Line Tools if not present (provides git)
 if ! xcode-select -p &>/dev/null; then
@@ -28,9 +21,3 @@ if [ ! -x /opt/homebrew/bin/brew ]; then
 fi
 eval "$(/opt/homebrew/bin/brew shellenv)"
 {{ end -}}
-
-# Install 1Password CLI via mise if not present
-if ! command -v op &>/dev/null; then
-    echo "Installing 1Password CLI via mise..."
-    "$MISE" use -g aqua:1password/cli@v2.32.0
-fi

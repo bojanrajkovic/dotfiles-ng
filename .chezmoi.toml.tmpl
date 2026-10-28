@@ -7,16 +7,19 @@
   sshPublicKeyItem = "SSH Key - MiniPC Public"
 {{ end -}}
 
+[hooks.read-source-state.pre]
+  # Installs op (and op-forward on Linux) before any template reads 1Password.
+  command = {{ joinPath .chezmoi.sourceDir ".install-op.sh" | quote }}
+
 [onepassword]
 {{- if eq .chezmoi.os "linux" }}
-  # op-mac pins op-forward's shim (run_once_setup-op-forward-linux.sh) to the
-  # Mac tunnel, even when chezmoi runs inside a Claude session whose env routes
-  # op to op-gate, which can't read the Shared or Employee vaults. On a fresh
-  # machine op-mac doesn't exist until the first apply, so fall back to the shim.
-  {{- $opMac := joinPath .chezmoi.homeDir ".local/bin/op-mac" }}
-  command = {{ if stat $opMac }}{{ $opMac | quote }}{{ else }}{{ joinPath .chezmoi.homeDir ".local/bin/op" | quote }}{{ end }}
+  # op-mac pins op-forward's shim to the Mac tunnel, even when chezmoi runs
+  # inside a Claude session whose env routes op to op-gate, which can't read
+  # the Shared or Employee vaults. .install-op.sh puts it in place before the
+  # first apply.
+  command = {{ joinPath .chezmoi.homeDir ".local/bin/op-mac" | quote }}
 {{- else }}
-  command = {{ output "mise" "which" "op" | trim | quote }}
+  command = {{ joinPath .chezmoi.homeDir ".local/share/mise/shims/op" | quote }}
 {{- end }}
   mode = "account"
   # The proxy rejects `op signin`; the Mac's op handles auth.
