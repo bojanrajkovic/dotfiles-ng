@@ -7,7 +7,11 @@ stty -ixon
 export XDG_RUNTIME_DIR=/run/user/$(id -u)
 # systemd socket-activates a shared ssh-agent on demand — one agent for every
 # shell/pane, instead of `eval $(ssh-agent)` spawning a new orphaned one per shell.
-export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+# Fedora's unit listens on ssh-agent.socket, Debian's on openssh_agent.
+for _sock in "$XDG_RUNTIME_DIR/ssh-agent.socket" "$XDG_RUNTIME_DIR/openssh_agent"; do
+  [[ -S "$_sock" ]] && export SSH_AUTH_SOCK="$_sock" && break
+done
+unset _sock
 {{ end -}}
 export EDITOR="emacsclient -a nano"
 
