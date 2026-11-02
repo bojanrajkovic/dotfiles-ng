@@ -12,6 +12,7 @@ setup-samba.sh
 install-system-packages.sh
 enable-linger.sh
 setup-nerdctl-socket-group.sh
+label-ssh-forward-ports-selinux.sh
 .local/bin/open-local
 .local/bin/xdg-open
 .local/bin/op-mac

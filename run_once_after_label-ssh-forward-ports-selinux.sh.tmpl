@@ -1,0 +1,41 @@
+#!/bin/bash
+{{ if ne .chezmoi.os "linux" -}}
+echo "Not Linux, skipping SELinux ssh forward port labels"
+exit 0
+{{ end -}}
+
+set -euo pipefail
+
+# With SELinux enforcing, sshd (sshd_t) can only bind ports labeled ssh_port_t.
+# Without the label, `ssh -R` fails with "remote port forwarding failed" and the
+# sshd journal shows "bind [127.0.0.1]:PORT: Permission denied".
+#
+# These are the RemoteForward listen ports in private_dot_ssh/private_config.tmpl:
+# xdg-open (19999) and op-forward (18340). Keep the two lists in sync.
+PORTS=(19999 18340)
+
+if ! command -v selinuxenabled &>/dev/null || ! selinuxenabled; then
+    echo "SELinux not enabled, skipping ssh forward port labels"
+    exit 0
+fi
+
+if [ "$(getenforce)" != "Enforcing" ]; then
+    echo "SELinux not enforcing, skipping ssh forward port labels"
+    exit 0
+fi
+
+if ! command -v semanage &>/dev/null; then
+    echo "ERROR: semanage not found. Install policycoreutils-python-utils." >&2
+    exit 1
+fi
+
+labeled=$(sudo semanage port -l | awk '$1 == "ssh_port_t" && $2 == "tcp" { $1 = $2 = ""; print }' | tr -d ',')
+
+for port in "${PORTS[@]}"; do
+    if grep -qw "$port" <<<"$labeled"; then
+        echo "tcp/$port already labeled ssh_port_t"
+    else
+        echo "Labeling tcp/$port as ssh_port_t..."
+        sudo semanage port -a -t ssh_port_t -p tcp "$port"
+    fi
+done
