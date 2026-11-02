@@ -1,13 +1,11 @@
 # macOS Homebrew packages (things not available via mise)
 
 # Taps
-tap "mistertea/et"
 tap "ekovshilovsky/tap"
 
 # Formulae
 brew "emacs"
 brew "flock"
-brew "mistertea/et/et"
 brew "ekovshilovsky/tap/op-forward"
 brew "media-info"
 brew "socat"
