@@ -159,4 +159,19 @@ unset key
 # Fedora's chromium package installs chromium-browser; Debian's installs chromium.
 export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH={{ if eq (get .chezmoi.osRelease "id") "fedora" }}/usr/bin/chromium-browser{{ else }}/usr/bin/chromium{{ end }}
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+
+# realop [--] CMD [ARGS...]: run CMD with `op` resolving to the official 1Password binary
+# (bypasses the op-forward shim and op-gate)
+realop() {
+  [[ $1 == -- ]] && shift
+  (( $# )) || { print -u2 "usage: realop [--] CMD [ARGS...]"; return 2 }
+  local real dir rc
+  real=$(mise which op) || { print -u2 "realop: no real op found via mise"; return 1 }
+  dir=$(mktemp -d) || return 1
+  ln -s "$real" "$dir/op"
+  PATH="$dir:$PATH" env -u OP_FORWARD_ADDR -u OP_FORWARD_FETCH_TIMEOUT_MS -u OP_FORWARD_TOKEN_DIR "$@"
+  rc=$?
+  rm -rf "$dir"
+  return $rc
+}
 {{ end -}}
