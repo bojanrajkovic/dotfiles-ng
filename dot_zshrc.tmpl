@@ -174,4 +174,20 @@ realop() {
   rm -rf "$dir"
   return $rc
 }
+
+# chezmoi-real ARGS...: run chezmoi with 1Password lookups going to the official op.
+# chezmoi pins onepassword.command to op-mac, so PATH tricks (realop) can't reroute it;
+# this swaps in a temporary config that points at the real binary instead.
+chezmoi-real() {
+  local real cfg rc
+  real=$(mise which op) || { print -u2 "chezmoi-real: no real op found via mise"; return 1 }
+  cfg=$(mktemp --suffix=.json) || return 1
+  chezmoi dump-config --format json \
+    | jq --arg r "$real" '.onepassword.command = $r | .onepassword.prompt = true' >"$cfg" \
+    || { rm -f "$cfg"; return 1 }
+  chezmoi --config "$cfg" --config-format json "$@"
+  rc=$?
+  rm -f "$cfg"
+  return $rc
+}
 {{ end -}}
