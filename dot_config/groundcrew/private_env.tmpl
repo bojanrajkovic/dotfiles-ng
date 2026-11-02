@@ -8,3 +8,6 @@
 {{- end -}}
 PUSHOVER_USER={{ $pushover.PUSHOVER_USER }}
 PUSHOVER_TOKEN={{ $pushover.PUSHOVER_TOKEN }}
+
+# Artifact tool in spawned sessions; headless sessions leave it off by default.
+CLAUDE_CODE_ARTIFACT=1
