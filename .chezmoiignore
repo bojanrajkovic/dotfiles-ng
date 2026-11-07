@@ -16,7 +16,6 @@ label-ssh-forward-ports-selinux.sh
 .local/bin/open-local
 .local/bin/xdg-open
 .local/bin/op-mac
-.cache/op-gate
 .local/share/ssh_remote_xdg_open
 .ssh/rc
 {{ end }}
