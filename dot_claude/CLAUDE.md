@@ -1,7 +1,8 @@
 # Important Stuff
 
 - Project docs document what _is_, not the journey — cut "we tried X", "empirically observed",
-  PR/SHA references, and first-person anecdotes.
+  PR/SHA references, and first-person anecdotes. When a fact changes, delete the stale lines;
+  don't reword them as "previously…" or "pending removal".
 - Default to including a diagram whenever it clarifies a flow, sequence, state machine,
   architecture, or data shape, not only when asked. ASCII diagrams on the terminal, Mermaid in docs.
 - Python — never `pip install` for ad-hoc work. For one-off scripts and tool invocations, use
@@ -34,6 +35,9 @@ human, it should follow these rules:
 
 - Use "Standard Technical English." Don't get too lost in project jargon, don't create project
   specific jargon. Short and to the point is *always* preferable to volumes.
+- Don't dress ordinary things up as a "rule", "gate", "guard", or "backstop". A config check is a
+  check, and a lint setting is a setting: say what it does. Don't lean on labels coined earlier in
+  the conversation either; describe the behavior instead.
 - Clarity, conciseness, consistency, and authenticity are paramount. Writing must not feel robotic.
 - Clarity: short sentences (15-20) words, short paragraphs (4-6 sentences), active voice, one
   concept per paragraph.
@@ -100,16 +104,25 @@ These are steps to follow whenever we're building new features, fixing bugs, etc
 * Run the /grill-with-docs skill to ask clarifying questions, sharpen the idea, brainstorm
   alternatives, and iterate on the design.
 * Read & explore the code for facts, use documentation as a guidepost.
+* Before writing code for each issue, do a structure review: lay out the files, folders, module
+  boundaries, and where tests and shared test helpers go, as a tree with one line per file, and get
+  my go-ahead.
 * Walk me through the design in sections (one section at a time, stop for go ahead between sections)
   when completed as a final pass at refinement if needed.
-* Use GitHub's new stacked PR feature to split bigger builds across multiple easy-to-review PRs.
+* Use GitHub's new stacked PR feature to split bigger builds across multiple easy-to-review PRs,
+  finer than feels natural, especially UI work: I skim PRs for their shape.
+  A stacked PR can't be merged with `gh pr merge` or the REST merge endpoint. Use
+  `gh stack merge <pr> --yes --squash`, which also merges everything below it. Then run
+  `gh stack rebase` and `gh stack push`, and wait for CI to re-run on the rest of the stack.
 * Load the Skill tool and use the `/ponytail` skill in ultra mode before designing
 * Load the Skill tool and run `/ponytail-review` after designing and after writing code.
 * Run a code review at the appropriate altitude after each change — use the `/code-review` skill's
   patterns. Surface a recommendation for apply/defer, and look to fix problems structurally rather
   than patching cases individually.
 * Write/update documentation with the change, don't batch it for later.
-* Use TDD whenever it makes sense to.
+* Use TDD whenever it makes sense to. Tests go where logic can be wrong: parsing, time math,
+  security checks, data writes. No tests, fixture cases, or CI steps for trivial wiring or
+  configuration, such as "this file exists" or "this lint setting fires".
 * Strong, strict typing & "making illegal states unrepresentable" should be an ethos.
   * Don't split off a union member just because one case carries an extra field. If every case
     can supply it, make it required on all of them. Don't make a field optional when the data
@@ -135,6 +148,9 @@ These are steps to follow whenever we're building new features, fixing bugs, etc
   a small value type. Service methods stay short and orchestrate the steps.
 * Blank lines separate a function's phases: write, span attributes, metric, log.
 * Use a child logger per module and per unit of work, with its IDs bound.
+* Don't add protections against mistakes no code path makes: redaction lists, lint settings,
+  runtime checks, or CI steps for a misuse nothing does. When briefing a reviewer, don't list
+  speculative risks; it'll invent a scenario and report it as a must-fix.
 
 ## Tracing
 
@@ -152,6 +168,10 @@ These are steps to follow whenever we're building new features, fixing bugs, etc
   named.
 * For review, give me one line per PR: its link and what to look at. Don't paste diffs into the
   reply, and don't run `git show` or `cat` to "show" me something; I can't see tool output.
+* More than a handful of review findings go on an artifact with approve, reject, and a comment box
+  per finding, saved to its database so you can read my answers back.
+* When I ask a question in a review comment on a PR you opened, answer in chat, not on the GitHub
+  thread. If the answer changes code, push it and say so in chat.
 * To wait for CI, run `ci-wait` (in `~/.local/bin`). Don't write your own polling loop or use
   `gh pr checks --watch`, which exits early when checks haven't registered yet. `ci-wait` takes a
   PR number, PR URL, branch, or SHA, and defaults to local HEAD, which must be pushed. It waits for
@@ -168,3 +188,5 @@ These are steps to follow whenever we're building new features, fixing bugs, etc
 * Verification content like test plans, screenshots, etc. goes in a PR comment.
 * You may upload screenshots/recordings to the coderinserepeat.com s3 bucket, under the junk folder
   — look at the folder structure for understanding. The bucket is served from coderinserepeat.com.
+  Upload with no `--acl` (the bucket rejects ACLs) and without `--quiet`, then check the served URL
+  returns 200 before sharing it.
