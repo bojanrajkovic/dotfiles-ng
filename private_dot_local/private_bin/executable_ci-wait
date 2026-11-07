@@ -4,10 +4,13 @@ set -Eeuo pipefail
 
 usage() {
 	cat <<'EOF'
-Usage: ci-wait [-R owner/repo] [--interval SEC] [--settle SEC] [--timeout SEC] [TARGET]
+Usage: ci-wait [-R owner/repo] [--interval SEC] [--settle SEC] [--timeout SEC]
+               [--until-merged] [TARGET]
 
 Waits until every check run and commit status on a commit has finished, then
-prints one line per check: result, name, workflow, URL, and run/job IDs.
+prints one line per check: result, name, workflow, URL, and run/job IDs. When
+checks fail and TARGET is a PR, it also prints the bot comments that mention an
+error (for example the ArgoCD diff job posts its render error there).
 
 TARGET is a PR number (123 or #123), a PR URL, a branch, a tag, or a SHA. The
 default is local HEAD, which must already be pushed. TARGET resolves to a SHA
@@ -25,13 +28,20 @@ Options:
   --interval   seconds between polls (default 10)
   --settle     seconds the last completion must age before reporting (default 30)
   --timeout    seconds to wait before giving up (default 3600)
+  --until-merged
+               TARGET must be a PR. After the checks pass, keep waiting until the
+               PR is merged. It only waits: enable GitHub's automerge yourself
+               (gh pr merge --auto --squash) or merge by hand. It warns once if
+               automerge is off. --timeout covers the whole wait.
 
 Exit codes:
-  0  every check passed (success, neutral, or skipped)
+  0  every check passed (success, neutral, or skipped); with --until-merged,
+     the PR was also merged
   1  at least one check failed, errored, was cancelled, or timed out
   2  usage error, TARGET not found, or repeated GitHub API errors
-  3  --timeout reached with checks still pending
+  3  --timeout reached with checks (or the merge, with --until-merged) pending
   4  no checks appeared within 120 seconds
+  5  --until-merged: the PR was closed without merging
 EOF
 }
 
@@ -42,9 +52,13 @@ die() {
 # Any unexpected failure must not exit 1, which means "CI failed".
 trap 'die "unexpected error on line $LINENO"' ERR
 
-repo=${GH_REPO:-} interval=10 settle=30 timeout=3600 target=
+repo=${GH_REPO:-} interval=10 settle=30 timeout=3600 target= until_merged=0 pr=
 while (($#)); do
 	case $1 in
+	--until-merged)
+		until_merged=1
+		shift
+		;;
 	-R | --repo | --interval | --settle | --timeout)
 		(($# >= 2)) || die "$1 needs a value"
 		case $1 in
@@ -75,8 +89,10 @@ fi
 [[ $repo == */* ]] || die "repo must be owner/repo, got '$repo'"
 
 if [[ $target =~ ^#?[0-9]+$ || $target == https://*/pull/* ]]; then
-	sha=$(gh pr view "${target#\#}" -R "$repo" --json headRefOid -q .headRefOid) || die "PR $target not found in $repo"
+	pr=${target#\#}
+	sha=$(gh pr view "$pr" -R "$repo" --json headRefOid -q .headRefOid) || die "PR $target not found in $repo"
 else
+	((!until_merged)) || die "--until-merged needs a PR number or URL as TARGET"
 	if [[ -z $target ]]; then
 		target=$(git rev-parse HEAD 2>/dev/null) || die "not in a git repo; pass a TARGET"
 	fi
@@ -170,6 +186,47 @@ report() {
 		echo "Failed job logs (add -R $repo outside the repo):"
 		echo "$logs"
 	fi
+	# Some jobs post their real error as a bot comment on the PR instead of in the job log.
+	if [[ -n $pr && $failed -gt 0 ]]; then
+		local comments
+		comments=$(gh api "repos/$repo/issues/${pr##*/}/comments" --paginate \
+			--jq '.[] | select(.user.type == "Bot") | select(.body | test("❌|error"; "i")) | .body' 2>/dev/null |
+			head -n 40) || true
+		if [[ -n $comments ]]; then
+			echo
+			echo "Bot comments on the PR that mention an error (first 40 lines):"
+			echo "$comments"
+		fi
+	fi
+}
+
+# After the checks pass, waits for the PR to merge (--until-merged). Only waits: never merges.
+wait_merged() {
+	local state auto warned=0
+	echo "ci-wait: checks passed; waiting for PR $pr to merge" >&2
+	while :; do
+		IFS=$'\t' read -r state auto < <(gh pr view "$pr" -R "$repo" --json state,autoMergeRequest \
+			-q '[.state, (.autoMergeRequest != null | tostring)] | @tsv') || die "can't read PR $pr"
+		case $state in
+		MERGED)
+			echo "ci-wait: PR $pr merged"
+			exit 0
+			;;
+		CLOSED)
+			echo "ci-wait: PR $pr was closed without merging"
+			exit 5
+			;;
+		esac
+		if [[ $auto == false && $warned == 0 ]]; then
+			echo "ci-wait: warning: automerge is not enabled on PR $pr; waiting for a manual merge" >&2
+			warned=1
+		fi
+		if ((SECONDS - start >= timeout)); then
+			echo "ci-wait: timed out waiting for PR $pr to merge"
+			exit 3
+		fi
+		sleep "$interval"
+	done
 }
 
 echo "ci-wait: watching $repo @ $sha" >&2
@@ -201,6 +258,7 @@ while :; do
 				exit 1
 			fi
 			report PASSED
+			((!until_merged)) || wait_merged
 			exit 0
 		fi
 	fi
