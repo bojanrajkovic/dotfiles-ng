@@ -26,6 +26,10 @@
   retry.
 - Use the Edit/Update/Read/Write tools instead of editing files via Bash/Python scripts, except for bulk
   edits that change many files at once.
+- When you're working in a repository, or in a worktree inside one, call the `add_repo` tool
+  (`mcp__claude-code-remote__add_repo`) to add it to the session. Do this even when the checkout
+  already exists locally. Without it, PR subscriptions fail with "repository not configured".
+  Skip the clone it suggests if the repo is already checked out.
 
 # Writing Rules
 
@@ -159,7 +163,6 @@ These are steps to follow whenever we're building new features, fixing bugs, etc
 * A cheap pure function gets no span; its results become attributes on the caller's span. A pure
   function that can be slow (rendering, a regex over large input) gets one.
 * Use span events only for rare moments with no duration, such as a scheduled retry.
-* Never put user content (message text, names, URLs) in span attributes or logs.
 
 ## Reviews and merging
 
