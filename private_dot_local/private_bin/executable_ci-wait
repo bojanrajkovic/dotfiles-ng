@@ -25,6 +25,7 @@ cancelled and never replaced still fails.
 
 Options:
   -R, --repo   owner/repo to query (default: $GH_REPO, then gh's default repo)
+               A PR URL as TARGET names its own repo and overrides this.
   --interval   seconds between polls (default 10)
   --settle     seconds the last completion must age before reporting (default 30)
   --timeout    seconds to wait before giving up (default 3600)
@@ -83,6 +84,10 @@ for n in "$interval" "$settle" "$timeout"; do
 done
 ((interval > 0)) || die "--interval must be at least 1"
 
+# A PR URL names its repo, so it wins over -R, $GH_REPO and the checkout's repo.
+if [[ $target =~ ^https://[^/]+/([^/]+/[^/]+)/pull/[0-9]+ ]]; then
+	repo=${BASH_REMATCH[1]}
+fi
 if [[ -z $repo ]]; then
 	repo=$(gh repo view --json nameWithOwner -q .nameWithOwner) || die "can't detect the repo; pass -R owner/repo"
 fi
