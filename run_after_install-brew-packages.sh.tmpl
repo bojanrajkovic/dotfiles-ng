@@ -1,5 +1,6 @@
 #!/bin/bash
-# Brewfile hash: {{ include "dot_Brewfile" | sha256sum }}
+# run_after_, not run_onchange_: brew bundle upgrades outdated packages, so it
+# runs on every apply to keep them current.
 {{ if ne .chezmoi.os "darwin" -}}
 echo "Not macOS, skipping Homebrew package installation"
 exit 0
