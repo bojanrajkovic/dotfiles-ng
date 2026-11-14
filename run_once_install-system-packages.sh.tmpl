@@ -70,10 +70,4 @@ sudo dnf install -y \
     gtk3 \
     cairo-gobject
 {{ end }}
-# Run Playwright's own dependency installer as a fallback/catch-all
-if command -v npx &>/dev/null; then
-    echo "Running npx playwright install-deps..."
-    npx playwright install-deps || echo "Warning: playwright install-deps failed, system deps were installed manually above"
-fi
-
 echo "System package installation complete!"
