@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
 """Block "<test runner> ... | grep/head/tail/awk/sed" in Bash tool calls.
 
 Piping test output means re-running the whole suite for every part of it you
