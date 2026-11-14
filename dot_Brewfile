@@ -5,6 +5,8 @@ tap "ekovshilovsky/tap"
 
 # Formulae
 brew "emacs"
+# fend's GitHub releases have no macOS binary, so mise can't install it here.
+brew "fend"
 brew "flock"
 brew "ekovshilovsky/tap/op-forward"
 brew "media-info"

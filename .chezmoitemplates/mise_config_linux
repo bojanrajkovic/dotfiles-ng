@@ -4,3 +4,5 @@
 # fails in mise 2026.10. github: flattens the tarball, so buildctl sits at the
 # install root.
 "github:moby/buildkit" = { version = "latest", postinstall = "sudo ln -sf $MISE_TOOL_INSTALL_PATH/buildctl /usr/local/bin/buildctl" }
+# fend releases only ship Linux binaries; macOS gets it from the Brewfile.
+"github:printfn/fend" = "latest"

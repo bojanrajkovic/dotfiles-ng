@@ -11,6 +11,11 @@ fi
 echo "Installing mise-managed tools..."
 "$MISE" install --yes
 
+# Tools are on "latest", which mise install doesn't move past what's already
+# installed. Upgrade to pick up new releases, then drop the old versions.
+"$MISE" upgrade --yes
+"$MISE" prune --yes
+
 echo "mise tool installation complete!"
 
 if "$MISE" which git-lfs &>/dev/null; then
