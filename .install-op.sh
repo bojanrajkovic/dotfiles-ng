@@ -5,12 +5,11 @@
 #
 # This is not a template; chezmoi data isn't available here.
 #
-# Linux: op is op-forward's shim, tunneled to the Mac over SSH
-# (RemoteForward 18340, see private_dot_ssh/private_config.tmpl). chezmoi calls
-# op-mac, which pins the shim to that tunnel even inside Claude sessions whose
-# env routes op to op-gate.
+# Both OSes: chezmoi reads 1Password with the official op, installed through
+# mise. On Linux it calls op-real, so run `eval "$(op-real signin)"` first.
 #
-# macOS: op is the real 1Password CLI, installed through mise.
+# Linux also gets op-forward and its `op` shim, which Claude sessions use for
+# op-gate and op-mac (see with-op). chezmoi doesn't need them.
 set -eu
 
 # Keep in sync with dot_config/mise/config.toml.tmpl.
@@ -21,16 +20,39 @@ OP_FORWARD_VERSION="1.1.0"
 
 SOURCE_DIR="$(cd "$(dirname "$0")" && pwd)"
 BIN="$HOME/.local/bin"
+MISE="$BIN/mise"
 TOKEN_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/op-forward"
 
-install_linux() {
-    if [ -x "$BIN/op-forward" ] && [ -x "$BIN/op" ] && [ -x "$BIN/op-mac" ] \
-        && [ -x "$BIN/with-op" ] && [ -f "$TOKEN_DIR/refresh.token" ]; then
+install_real_op() {
+    if [ -x "$MISE" ] && "$MISE" which op >/dev/null 2>&1; then
         return 0
     fi
 
-    mkdir -p "$BIN" "$TOKEN_DIR"
+    if [ ! -x "$MISE" ]; then
+        echo "Installing mise..." >&2
+        curl -fsSL https://mise.run | sh
+    fi
+    echo "Installing 1Password CLI ${OP_VERSION} via mise..." >&2
+    "$MISE" use -g "1password@${OP_VERSION}"
+    "$MISE" reshim
+}
+
+install_linux() {
+    # chezmoi manages op-real and with-op too; these copies only have to exist
+    # before the first apply, and the contents match, so apply leaves them alone.
+    mkdir -p "$BIN"
     chmod 700 "$BIN"
+    for script in op-real with-op; do
+        if [ ! -x "$BIN/$script" ]; then
+            install -m 755 "$SOURCE_DIR/private_dot_local/private_bin/executable_$script" "$BIN/$script"
+        fi
+    done
+
+    if [ -x "$BIN/op-forward" ] && [ -x "$BIN/op" ] && [ -f "$TOKEN_DIR/refresh.token" ]; then
+        return 0
+    fi
+
+    mkdir -p "$TOKEN_DIR"
 
     if [ ! -x "$BIN/op-forward" ]; then
         echo "Installing op-forward ${OP_FORWARD_VERSION}..." >&2
@@ -52,17 +74,9 @@ install_linux() {
         "$BIN/op-forward" install
     fi
 
-    # chezmoi manages op-mac and with-op too; these copies only have to exist
-    # before the first apply, and the contents match, so apply leaves them alone.
-    for script in op-mac with-op; do
-        if [ ! -x "$BIN/$script" ]; then
-            install -m 755 "$SOURCE_DIR/private_dot_local/private_bin/executable_$script" "$BIN/$script"
-        fi
-    done
-
     if [ ! -f "$TOKEN_DIR/refresh.token" ]; then
         cat >&2 <<EOF
-op-forward has no refresh token, so chezmoi can't read 1Password yet.
+op-forward has no refresh token, so op-mac won't work here yet (chezmoi is fine).
 The Mac runs one op-forward daemon per host. If $(hostname -s) isn't in
 .chezmoidata.yaml's sshForwardedHosts yet, add it (with an opForwardPort)
 and run \`chezmoi apply\` on the Mac; that starts its daemon and pushes the
@@ -70,29 +84,13 @@ token here. Otherwise, on the Mac, run:
 
     scp ~/Library/Caches/op-forward/$(hostname -s)/refresh.token $(hostname -s):.cache/op-forward/refresh.token
 
-Then reconnect over SSH (so the 18340 RemoteForward is up) and rerun chezmoi.
+Then reconnect over SSH (so the 18340 RemoteForward is up).
 EOF
-        exit 1
     fi
-}
-
-install_darwin() {
-    MISE="$HOME/.local/bin/mise"
-    if [ -x "$MISE" ] && [ -x "$HOME/.local/share/mise/shims/op" ]; then
-        return 0
-    fi
-
-    if [ ! -x "$MISE" ]; then
-        echo "Installing mise..." >&2
-        curl -fsSL https://mise.run | sh
-    fi
-    echo "Installing 1Password CLI ${OP_VERSION} via mise..." >&2
-    "$MISE" use -g "1password@${OP_VERSION}"
-    "$MISE" reshim
 }
 
 case "$(uname -s)" in
-    Linux) install_linux ;;
-    Darwin) install_darwin ;;
+    Linux) install_real_op; install_linux ;;
+    Darwin) install_real_op ;;
     *) echo "Unsupported OS: $(uname -s)" >&2; exit 1 ;;
 esac

@@ -26,7 +26,8 @@
   - `op-mac` waits for Touch ID on my Mac and has no such limits. Check
     `curl -fsm2 http://127.0.0.1:18340/health` first; if it fails, no Mac is connected, so ask me.
   - `op-real` is the official CLI and needs a person to run `op signin`, so an agent writes the
-    change and I run it. `with-op real` does the same for tools that call `op`.
+    change and I run it. `with-op real` does the same for tools that call `op`. chezmoi uses it
+    too: I run `eval "$(op-real signin)"` once, then `chezmoi update`.
   If a request is denied or times out, tell me what it needed and don't retry.
 - Use the Edit/Update/Read/Write tools instead of editing files via Bash/Python scripts, except for bulk
   edits that change many files at once.
