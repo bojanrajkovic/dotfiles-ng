@@ -2,27 +2,9 @@
 
 stty -ixon
 
-# Set these early in initialization in case something goes sideways
-{{ if eq .chezmoi.os "linux" -}}
-export XDG_RUNTIME_DIR=/run/user/$(id -u)
-# systemd socket-activates a shared ssh-agent on demand — one agent for every
-# shell/pane, instead of `eval $(ssh-agent)` spawning a new orphaned one per shell.
-# Fedora's unit listens on ssh-agent.socket, Debian's on openssh_agent.
-for _sock in "$XDG_RUNTIME_DIR/ssh-agent.socket" "$XDG_RUNTIME_DIR/openssh_agent"; do
-  [[ -S "$_sock" ]] && export SSH_AUTH_SOCK="$_sock" && break
-done
-unset _sock
-{{ end -}}
-export EDITOR="emacsclient -a nano"
-
-# Force-update Claude plugins.
-export DISABLE_AUTOUPDATER=false
-export FORCE_AUTOUPDATE_PLUGINS=true
-
-{{ if eq .chezmoi.os "darwin" -}}
-# colima's docker socket isn't at the default /var/run/docker.sock path.
-export DOCKER_HOST="unix://$HOME/.colima/default/docker.sock"
-{{ end -}}
+# Environment shared with ~/.bashrc (see .chezmoitemplates/shell_env), set early
+# in initialization in case something goes sideways. Includes mise activation.
+{{ template "shell_env" (dict "shell" "zsh" "chezmoi" .chezmoi) }}
 
 # History
 setopt HIST_IGNORE_ALL_DUPS
@@ -44,13 +26,10 @@ bindkey -e
 # Remove path separator from WORDCHARS
 WORDCHARS=${WORDCHARS//[\/]}
 
-# Initialize mise first (sets up PATH)
-eval "$(~/.local/bin/mise activate zsh)"
-
 {{ if eq .chezmoi.os "linux" -}}
-# mise activate's precmd hook (_mise_hook_precmd, registered above)
+# mise activate's precmd hook (_mise_hook_precmd, registered in shell_env)
 # re-prepends its managed tool directories on every prompt cycle, which
-# undoes a one-time `export PATH=...` placed after it as soon as the first
+# undoes the one-time `export PATH=...` in shell_env as soon as the first
 # prompt renders. ~/.local/bin holds op-forward's and ssh_remote_xdg_open's
 # shims (op, xdg-open), which must win over the mise-managed real binaries
 # they shadow, so register our own precmd hook -- added after mise's, so it
@@ -68,8 +47,6 @@ eval "$(chezmoi completion zsh)"
 
 # Initialize starship
 eval "$(starship init zsh)"
-
-export GITHUB_PERSONAL_ACCESS_TOKEN="$(gh auth token)"
 
 {{ if eq .chezmoi.os "linux" -}}
 # Auto-attach to Zellij on SSH/Mosh login. `LC_NO_ZELLIJ=1 ssh <host>` skips it
@@ -97,10 +74,6 @@ alias cat='bat -p'
 # and third-party skills emit `grep -E` or `find -type f` and the aliases break
 # them silently. Use `fd` and `rg` explicitly when you want them.
 alias ccw='claude --allow-dangerously-skip-permissions --dangerously-load-development-channels server:ssh'
-{{ if eq .chezmoi.os "linux" -}}
-alias nerdctl='sudo nerdctl --address /run/k3s/containerd/containerd.sock --namespace k8s.io'
-alias docker='nerdctl'
-{{ end -}}
 
 bindkey "^[[3~" delete-char           # Delete
 bindkey "^[[H" beginning-of-line      # Home
@@ -125,9 +98,6 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
 # Ctrl-T specific options - show file preview
 export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range=:500 {}'"
-
-# Only use uv-managed Python
-export UV_MANAGED_PYTHON=1
 
 # Add our local ed25519 key to ssh-agent, once per agent.
 ssh-add -l >/dev/null 2>&1 || ssh-add
@@ -155,39 +125,3 @@ zmodload -F zsh/terminfo +p:terminfo
 for key ('^[[A' '^P' ${terminfo[kcuu1]}) bindkey ${key} history-substring-search-up
 for key ('^[[B' '^N' ${terminfo[kcud1]}) bindkey ${key} history-substring-search-down
 unset key
-{{ if eq .chezmoi.os "linux" -}}
-# Fedora's chromium package installs chromium-browser; Debian's installs chromium.
-export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH={{ if eq (get .chezmoi.osRelease "id") "fedora" }}/usr/bin/chromium-browser{{ else }}/usr/bin/chromium{{ end }}
-export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-
-# realop [--] CMD [ARGS...]: run CMD with `op` resolving to the official 1Password binary
-# (bypasses the op-forward shim and op-gate)
-realop() {
-  [[ $1 == -- ]] && shift
-  (( $# )) || { print -u2 "usage: realop [--] CMD [ARGS...]"; return 2 }
-  local real dir rc
-  real=$(mise which op) || { print -u2 "realop: no real op found via mise"; return 1 }
-  dir=$(mktemp -d) || return 1
-  ln -s "$real" "$dir/op"
-  PATH="$dir:$PATH" env -u OP_FORWARD_ADDR -u OP_FORWARD_FETCH_TIMEOUT_MS -u OP_FORWARD_TOKEN_DIR "$@"
-  rc=$?
-  rm -rf "$dir"
-  return $rc
-}
-
-# chezmoi-real ARGS...: run chezmoi with 1Password lookups going to the official op.
-# chezmoi pins onepassword.command to op-mac, so PATH tricks (realop) can't reroute it;
-# this swaps in a temporary config that points at the real binary instead.
-chezmoi-real() {
-  local real cfg rc
-  real=$(mise which op) || { print -u2 "chezmoi-real: no real op found via mise"; return 1 }
-  cfg=$(mktemp --suffix=.json) || return 1
-  chezmoi dump-config --format json \
-    | jq --arg r "$real" '.onepassword.command = $r | .onepassword.prompt = true' >"$cfg" \
-    || { rm -f "$cfg"; return 1 }
-  chezmoi --config "$cfg" --config-format json "$@"
-  rc=$?
-  rm -f "$cfg"
-  return $rc
-}
-{{ end -}}
