@@ -1,6 +1,5 @@
 #!/bin/sh
 # op through op-forward's tunnel to the Mac, where the owner approves with Touch ID.
 # Use it for the Employee and Private vaults and for writes, which op-gate can't do.
-# --no-color: op on the Mac colors its output (it sees a terminal), which breaks JSON
-# parsers here. NO_COLOR doesn't cross the tunnel, so pass the flag. See with-op.
-exec "$HOME/.local/bin/with-op" mac op --no-color "$@"
+# See with-op.
+exec "$HOME/.local/bin/with-op" mac op "$@"

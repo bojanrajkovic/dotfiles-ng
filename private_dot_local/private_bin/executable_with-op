@@ -30,8 +30,16 @@ case $route in
   mac)
     export OP_FORWARD_ADDR=tcp://127.0.0.1:18340
     export OP_FORWARD_TOKEN_DIR="$HOME/.cache/op-forward"
-    export PATH="$bin:$PATH"
-    exec "$@"
+    # op on the Mac colors its output (it sees a terminal), which breaks JSON parsers
+    # here. NO_COLOR doesn't cross the tunnel, so CMD's `op` is a wrapper that passes
+    # --no-color.
+    dir=$(mktemp -d) || exit 1
+    trap 'rm -rf "$dir"' EXIT
+    printf '#!/bin/sh\nexec "%s/op" --no-color "$@"\n' "$bin" > "$dir/op"
+    chmod +x "$dir/op"
+    # Not exec: the trap has to remove $dir afterwards.
+    PATH="$dir:$bin:$PATH" "$@"
+    exit $?
     ;;
   real)
     real=$(mise which op) || { echo "with-op: no real op found via mise" >&2; exit 1; }
