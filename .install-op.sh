@@ -12,8 +12,6 @@
 # op-gate and op-mac (see with-op). chezmoi doesn't need them.
 set -eu
 
-# Keep in sync with dot_config/mise/config.toml.tmpl.
-OP_VERSION="2.42.0"
 # op-forward's apt/dnf repos were dead as of 2026-08-28, so this uses the
 # GitHub release tarball. `op-forward update` self-updates afterwards.
 OP_FORWARD_VERSION="1.1.0"
@@ -32,8 +30,8 @@ install_real_op() {
         echo "Installing mise..." >&2
         curl -fsSL https://mise.run | sh
     fi
-    echo "Installing 1Password CLI ${OP_VERSION} via mise..." >&2
-    "$MISE" use -g "1password@${OP_VERSION}"
+    echo "Installing the 1Password CLI via mise..." >&2
+    "$MISE" use -g 1password@latest
     "$MISE" reshim
 }
 
