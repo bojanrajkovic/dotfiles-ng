@@ -1,0 +1,48 @@
+#!/bin/bash
+# with-op ROUTE CMD [ARGS...]: run CMD with `op` resolving to one route to 1Password.
+#   gate  op-gate: the owner approves each command on their phone. Reads only.
+#   mac   op-forward's tunnel to the Mac: Touch ID. Employee and Private vaults, writes.
+#   real  the official op binary: asks for the account password with `op signin`.
+# Claude sessions route plain `op` to op-gate through OP_FORWARD_* in Claude's settings.
+# This overrides them, so the route doesn't depend on who launched the shell.
+# The drop-ins op-gate, op-mac and op-real run `op` itself: `op-mac item get X`.
+set -u
+
+usage() { echo "usage: with-op <gate|mac|real> CMD [ARGS...]" >&2; exit 2; }
+
+(( $# >= 2 )) || usage
+route=$1
+shift
+[[ $1 == -- ]] && shift
+(( $# )) || usage
+
+bin="$HOME/.local/bin"
+
+case $route in
+  gate)
+    # ~/.config/op-gate.env is rendered by chezmoi from opGate in .chezmoidata.yaml.
+    set -a
+    . "$HOME/.config/op-gate.env" || { echo "with-op: cannot read ~/.config/op-gate.env" >&2; exit 1; }
+    set +a
+    export PATH="$bin:$PATH"
+    exec "$@"
+    ;;
+  mac)
+    export OP_FORWARD_ADDR=tcp://127.0.0.1:18340
+    export OP_FORWARD_TOKEN_DIR="$HOME/.cache/op-forward"
+    export PATH="$bin:$PATH"
+    exec "$@"
+    ;;
+  real)
+    real=$(mise which op) || { echo "with-op: no real op found via mise" >&2; exit 1; }
+    dir=$(mktemp -d) || exit 1
+    trap 'rm -rf "$dir"' EXIT
+    ln -s "$real" "$dir/op"
+    # Not exec: the trap has to remove $dir afterwards.
+    PATH="$dir:$PATH" env -u OP_FORWARD_ADDR -u OP_FORWARD_FETCH_TIMEOUT_MS -u OP_FORWARD_TOKEN_DIR "$@"
+    exit $?
+    ;;
+  *)
+    usage
+    ;;
+esac

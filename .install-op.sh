@@ -25,7 +25,7 @@ TOKEN_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/op-forward"
 
 install_linux() {
     if [ -x "$BIN/op-forward" ] && [ -x "$BIN/op" ] && [ -x "$BIN/op-mac" ] \
-        && [ -f "$TOKEN_DIR/refresh.token" ]; then
+        && [ -x "$BIN/with-op" ] && [ -f "$TOKEN_DIR/refresh.token" ]; then
         return 0
     fi
 
@@ -52,11 +52,13 @@ install_linux() {
         "$BIN/op-forward" install
     fi
 
-    # chezmoi manages op-mac too; this copy only has to exist before the first
-    # apply, and the contents match, so apply leaves it alone.
-    if [ ! -x "$BIN/op-mac" ]; then
-        install -m 755 "$SOURCE_DIR/private_dot_local/private_bin/executable_op-mac" "$BIN/op-mac"
-    fi
+    # chezmoi manages op-mac and with-op too; these copies only have to exist
+    # before the first apply, and the contents match, so apply leaves them alone.
+    for script in op-mac with-op; do
+        if [ ! -x "$BIN/$script" ]; then
+            install -m 755 "$SOURCE_DIR/private_dot_local/private_bin/executable_$script" "$BIN/$script"
+        fi
+    done
 
     if [ ! -f "$TOKEN_DIR/refresh.token" ]; then
         cat >&2 <<EOF

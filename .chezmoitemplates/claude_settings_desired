@@ -16,9 +16,9 @@
     "DISABLE_AUTOUPDATER": "false",
     "FORCE_AUTOUPDATE_PLUGINS": "true",
     "CLAUDE_AFK_TIMEOUT_MS": "86400000"{{ if eq .chezmoi.os "linux" }},
-    "OP_FORWARD_ADDR": "tcp://op-gate-rpc.services.coderinserepeat.com:18340",
-    "OP_FORWARD_TOKEN_DIR": "{{ .chezmoi.homeDir }}/.cache/op-gate",
-    "OP_FORWARD_FETCH_TIMEOUT_MS": "300000"{{ end }}
+    "OP_FORWARD_ADDR": "{{ .opGate.addr }}",
+    "OP_FORWARD_TOKEN_DIR": "{{ .chezmoi.homeDir }}/{{ .opGate.tokenDir }}",
+    "OP_FORWARD_FETCH_TIMEOUT_MS": "{{ .opGate.fetchTimeoutMs }}"{{ end }}
   },
   "hooks": {
     "PreToolUse": [

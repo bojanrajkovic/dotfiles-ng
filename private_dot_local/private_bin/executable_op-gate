@@ -1,0 +1,3 @@
+#!/bin/sh
+# op through op-gate: the owner approves each command on their phone. See with-op.
+exec "$HOME/.local/bin/with-op" gate op "$@"

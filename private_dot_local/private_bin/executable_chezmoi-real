@@ -1,0 +1,14 @@
+#!/bin/bash
+# chezmoi-real ARGS...: run chezmoi with 1Password lookups going to the official op.
+# chezmoi pins onepassword.command to op-mac, so with-op can't reroute it; this swaps
+# in a temporary config that points at the real binary instead.
+set -u
+
+real=$(mise which op) || { echo "chezmoi-real: no real op found via mise" >&2; exit 1; }
+cfg=$(mktemp --suffix=.json) || exit 1
+trap 'rm -f "$cfg"' EXIT
+
+chezmoi dump-config --format json \
+  | jq --arg r "$real" '.onepassword.command = $r | .onepassword.prompt = true' >"$cfg" \
+  || exit 1
+chezmoi --config "$cfg" --config-format json "$@"
