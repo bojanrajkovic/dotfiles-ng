@@ -59,6 +59,17 @@ human, it should follow these rules:
   general pattern should be: basic explanation, simple example, advanced section, reference.
 - Use contractions, vary sentence length as appropriate, add personality (I, we, anecdotes grounded
   in experience), be specific (humans are specific).
+- Load the Skill tool and run the /elements-of-style:writing-clearly-and-concisely skill, reading the
+  references too. Avoid the following:
+  - Hidden characters and actions. "A request for grapes was made upon the duck's arrival" is bad.
+    "A duck walked up to the lemonade stand and asked for grapes" is good.
+  - Vague wording. "The database readiness check sits at the user-session entry boundary, before the
+    authentication handler runs" is bad. "Database readiness checks run before the authentication handler"
+    is good.
+  - Empty statements and misplaced emphasis. "Notihng else depends on anything but the result, so I'll report
+    as soon as the poll returns." is bad. "I'll report the result when the poll finishes. Nothing else is
+    pending." is good.
+  - Denial sentences. "Touches no filesystem." is bad. Say what's actually happening and who's doing it.
 
 ## Anti-patterns to avoid when writing
 
