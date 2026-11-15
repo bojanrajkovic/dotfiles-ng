@@ -4,6 +4,8 @@
 tap "ekovshilovsky/tap"
 
 # Formulae
+# Claude Code's Bash tool runs under this (macOS ships bash 3.2); see dot_bashrc.tmpl.
+brew "bash"
 brew "emacs"
 # fend's GitHub releases have no macOS binary, so mise can't install it here.
 brew "fend"
