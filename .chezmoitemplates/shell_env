@@ -30,9 +30,10 @@ export UV_MANAGED_PYTHON=1
 eval "$(~/.local/bin/mise activate {{ .shell }})"
 
 {{ if eq .chezmoi.os "linux" -}}
-# ~/.local/bin holds op-forward's and ssh_remote_xdg_open's shims (op, xdg-open),
-# which must win over the mise-managed real binaries they shadow. This covers a
-# non-interactive shell; zsh also re-applies it on every prompt (see dot_zshrc.tmpl).
+# ~/.local/bin holds the `op` shim (op-forward) and the `xdg-open` shim
+# (ssh_remote_xdg_open). The `op` shim has to come before mise's real `op` on PATH.
+# Bash only needs this one export. zsh re-runs it on every prompt, because mise's
+# precmd hook puts its own directories back in front (see dot_zshrc.tmpl).
 export PATH="$HOME/.local/bin:$PATH"
 
 # Fedora's chromium package installs chromium-browser; Debian's installs chromium.
