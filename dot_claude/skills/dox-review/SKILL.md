@@ -1,35 +1,90 @@
 ---
 name: dox-review
-description: Use when reviewing the dox document-archive queue — "show me the dox review queue", "/dox-review", "dox queue", "review flagged docs", or after an inbox/backfill run reports flags. Walks queue.yaml findings item by item, applies rulings to sidecars and entities.yaml, widens routes, performs queue-approved project-side edits, and re-runs lint/index/project.
+description: Use when reviewing the dox document-archive queue — "show me the dox review queue", "/dox-review", "dox queue", "review flagged docs", or after an inbox/backfill run reports flags. Walks the open findings item by item through the dox MCP tools, applies the owner's rulings to documents, entities, and categories, and resolves each finding.
 ---
 
 # dox review sitting
 
-Interactive review of the dox archive's flagged items. The owner rules; you apply. Full system context: the dox project doc (Outline, Projects collection) and its About child; day-to-day reference: "How to use dox (owner's manual)".
+Review the dox archive's open findings with the owner. The owner rules; you apply. Do everything
+through the dox MCP tools. Do not edit corpus files, run the dox CLI, or edit Outline pages in the
+Documents collection: dox generates those pages and overwrites them.
 
-## Ground rules (violating these corrupts the system)
+## Ground rules
 
-1. **Sidecars and `entities.yaml` are the only things you edit.** Never edit generated pages in the Documents collection — they're overwritten on projection. Hand-authored project-wiki pages may only be edited after the owner approves that specific route-suggestion.
-2. **Present-then-ask, in separate turns.** AskUserQuestion dialogs swallow any text in the same turn — tables/context must END a turn, the ask comes next turn, self-contained. If the owner says "what table?", reprint standalone and re-ask (this failed twice on 2026-07-17; do not repeat it).
-3. **Owner statements are facts** — record them as registry `note:` fields (dates of life events, property eras, who an org is). Facts make future extractions smarter; provenance-worthy facts should name their source doc.
-4. **After rulings**: strip `needs-review` from ruled sidecars (so lint doesn't resurrect them), remove the handled entries from `queue.yaml` by id, then re-run `lint`, `index`, `project --throttle 1500`.
+1. **The owner rules, you apply.** Propose a disposition for each finding. Apply it only after the
+   owner agrees.
+2. **Present, then ask, in separate turns.** A question dialog hides any text sent in the same
+   turn. End one turn with the table or context. Ask in the next turn, and make the question
+   self-contained. If the owner says "what table?", print it again on its own and re-ask.
+3. **Owner statements are facts. Record them.** When the owner states a fact about an entity (a
+   date of a life event, a property's era, who an org is), save it with `upsert_entity` as the
+   entity's `note`. Name the source document when the fact came from one. Notes make later
+   extractions better.
+4. **Resolve what you ruled on.** After a ruling is applied, call `resolve_finding` with the
+   ruling in a few words. A finding you leave open comes back in the next sitting.
 
-## Where things live
+## Tools
 
-- Corpus + queue: `~/Sync/Documents/` (`queue.yaml`, `entities.yaml`, `schema.md`) — Syncthing-synced; the cron on Junction reconciles projections within minutes of edits syncing.
-- CLI: the dox repo (`~/Projects/dox` on the Mac, `~/dox` on Junction) → `node dist/cli.js <cmd> --corpus ~/Sync/Documents`; Outline token: `set -a; source ~/.config/dox/.env; set +a` (needed for `project`).
-- Validate YAML after every registry edit: `uv run --with pyyaml python -c "import yaml; yaml.safe_load(open(...))"`. Preserve the file's header comment (serializers drop comments — re-prepend if you rewrite).
+| Tool | Use |
+|---|---|
+| `list_findings` | The open findings. Filter with `reason`. |
+| `get_document` | One document's full sidecar, including its text. |
+| `list_vocabulary` | The categories and entity slugs. Call it before you propose a category or tag. |
+| `update_document` | Change a document's category, title, date, tags, summary, data, confidence, or flags. |
+| `upsert_entity` | Add an entity, or change its aliases, note, or routes. |
+| `add_category` | Add a category to the vocabulary. |
+| `rename_document` | Rename a document's file after its date or title changed. |
+| `resolve_finding` | Close a finding with the ruling. |
+| `run_reconcile` | Re-run lint and the index. Only needed when files changed outside dox. |
 
-## The sitting flow
+Every write tool returns `{job_id, status}`. `done` means the change is written. `pending` means
+the job is still running: check it with `list_jobs` before you depend on the change. An error
+result carries a reason code and a hint; act on the hint, or tell the owner.
 
-1. Read `queue.yaml`; group findings by reason; report counts and propose an order (batch same-kind items).
-2. **novel-entity** (batchable): for each minted slug, propose a disposition table — ratify with kind/aliases/note, merge into an existing slug (watch for the same entity minted in two namespaces), or alias into an existing org (e.g. subsidiary → parent). One AskUserQuestion for the batch, exceptions via notes. Apply: registry entries + fix affected sidecar tags to canonical slugs.
-3. **needs-review / low confidence** (per-doc or small groups): show filename, category, confidence, flags, summary, and a text excerpt if judgment needs it. Propose a disposition per doc (accept as-is / retag / recategorize / redate). Owner-visible context first (rule 2), then ask.
-4. **route-suggestion**: doc-side links are automatic; the ask is whether to add the link on the *project* page. On approval, make that one edit (Outline patch — never start replacement text with an escaped markdown char; the parser prepends `undefined`).
-5. **Dates**: year-only knowledge → `YYYY-12-31` + `imprecise-date` (tax-year convention); filename dates count as hints; truly dateless stays dateless (rename pass skips those by design).
-6. Rulings that reveal vocabulary gaps (new category, namespace question) → edit `schema.md` too; it and `entities.yaml` in the share are the system of record.
-7. Close: apply step 4 of ground rules, then summarize rulings in the sitting's own words on the dox project doc's tracker if substantial.
+`tags` and `data` in `update_document` replace the whole list or object. Read the current values
+with `get_document` first and send the full new value. `aliases` and `routes` in `upsert_entity`
+work the same way.
+
+## The sitting
+
+1. Call `list_findings`. Group the findings by reason, report the counts, and propose an order.
+   Batch findings of the same reason.
+2. **novel-entity** (batch). For each new slug, propose one of: ratify it with a kind, aliases,
+   and a note; merge it into an existing slug; or make it an alias of an existing entity, such as
+   a subsidiary under its parent. Watch for one entity under two namespaces. Show the table, then
+   ask once for the batch. Apply with `upsert_entity`, then fix each affected document's tags with
+   `update_document`.
+3. **needs-review** (one document or a small group at a time). Call `get_document`. Show the
+   filename, category, confidence, flags, summary, and a text excerpt if the ruling needs it.
+   Propose a disposition: accept as-is, retag, recategorize, or redate. Apply changes with
+   `update_document`. `resolve_finding` removes the `needs-review` flag itself.
+4. **unknown-category**. Either move the document to an existing category with `update_document`,
+   or, if the owner wants the new category, call `add_category`.
+5. **invalid-schema**. Read the detail, and fix the named fields with `update_document`. If the
+   whole extraction is wrong, tell the owner; `reextract_document` replaces it with a new one.
+6. **route-suggestion**. dox links the project from the document's own page. Ask the owner only
+   whether the project page should link back. If yes, make that one edit to the project page in
+   Outline. Then resolve the finding either way, so it doesn't return.
+7. **duplicate-hash, quarantined, sync-conflict**. Show the owner the files involved and ask what
+   to keep. Deleting a file is the owner's action. For a quarantined file the owner wants tried
+   again, call `retry_quarantined` with the finding's `filename`.
+8. After changing a document's date or title, call `rename_document`.
+9. Close: report what you ruled on, what is still open, and any job that ended `failed`.
+
+## Dates
+
+- Only the year is known: use `YYYY-12-31` and add the `imprecise-date` flag.
+- A date in the filename is a hint. Confirm it against the text.
+- No date can be found: pass `date: null`. `rename_document` skips undated documents by design.
+
+## Findings that close themselves
+
+Lint runs after every write. A finding whose problem is fixed gets the resolution `gone` and
+leaves `list_findings` without a `resolve_finding` call. This covers most `unknown-category`,
+`novel-entity`, and `invalid-schema` findings. A `route-suggestion` finding, and a `needs-review`
+finding whose flag is still set, stay until you resolve them.
 
 ## Ending early
 
-The queue persists — the owner can stop anytime ("I can do a few"). Never rush remaining items; report what's left and how to resume.
+The findings persist. The owner can stop at any time. Do not rush the remaining items: report how
+many are open and say that the next sitting starts again with `list_findings`.
