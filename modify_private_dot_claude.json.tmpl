@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# ~/.claude.json is Claude Code's state file (projects, history, caches). This
+# script sets only the user-scope MCP servers below and passes every other key
+# through in its original order. It keeps servers added with `claude mcp add`.
+#
+# clickstack: the homelab's ClickStack (HyperDX), for trace search when
+#   Honeycomb is down. Only the LAN and tailnet can reach it. The token is a
+#   HyperDX personal API access key, which chezmoi reads from 1Password on
+#   each apply.
+# xcode: the MCP bridge that ships with Xcode (`xcrun mcpbridge`). The script
+#   adds it on macOS only.
+set -euo pipefail
+
+# chezmoi runs modify scripts without mise's shims on PATH, so add them here.
+# mise provides jq (dot_config/mise/config.toml.tmpl).
+export PATH="$HOME/.local/share/mise/shims:$PATH"
+
+input=$(cat)
+[ -n "$input" ] || input='{}'
+
+# The quoted heredoc stops the shell from expanding `$`, backticks or
+# backslashes in the token.
+clickstack_token=$(cat <<'TOKEN'
+{{ onepasswordRead "op://Agent/ClickStack API Access Key/password" | trim }}
+TOKEN
+)
+
+jq --arg clickstack_token "$clickstack_token" '.mcpServers += {
+  clickstack: {
+    type: "http",
+    url: "https://traces.services.coderinserepeat.com/api/mcp",
+    headers: {Authorization: ("Bearer " + $clickstack_token)}
+  }
+{{- if eq .chezmoi.os "darwin" }},
+  xcode: {type: "stdio", command: "xcrun", args: ["mcpbridge"], env: {}}
+{{- end }}
+}' <<<"$input"
