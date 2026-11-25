@@ -25,7 +25,6 @@ label-ssh-forward-ports-selinux.sh
 {{ end }}
 
 {{ if ne .chezmoi.os "darwin" }}
-.claude.json
 .Brewfile
 .config/kitty
 install-brew-packages.sh
