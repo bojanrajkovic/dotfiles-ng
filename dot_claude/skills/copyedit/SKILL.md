@@ -29,7 +29,7 @@ Go through the draft one sentence at a time. Treat each doc comment, code commen
 
 1. Read it aloud in your head. Does it sound like a person talking, or like a riddle, a contract, or a translation?
 2. Find the subject and the verb. Is the subject the thing that really acts? Is the verb concrete, or is it "admits", "carries", "gets", "gives", or "holds"?
-3. Walk the patterns list from 1 to 23, and ask whether the sentence matches each one. Patterns 1 to 3 (negated object, pro-form echo, abstract verb on a thing) are the most common, so look hardest at those.
+3. Walk the patterns list from 1 to 23, and ask whether the sentence matches each one. Patterns 1 to 3 (negated object, pro-form echo, abstract verb on a thing) are the most common in prose, so look hardest at those. In code, pattern 6 (verbless description) is as common: check it on every doc comment, one comment at a time, before you move to the next file.
 4. Check it against Elements of Style: active voice, positive form, concrete words, needless words, related words kept together.
 5. Ask whether the reader needs the sentence here at all. If it matches pattern 23, the fix is to cut it.
 6. If you can't tell what the sentence means, read the code it describes before you rewrite it. A rewrite of a sentence you don't understand keeps the confusion.

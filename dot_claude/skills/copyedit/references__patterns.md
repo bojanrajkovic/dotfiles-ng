@@ -57,7 +57,12 @@ A doc comment or sentence that's only a noun phrase. It names a value when the r
 - Bad: "`files` with each EVE file's bytes passed through `edit`."
 - Bad: "One EVE file's annotations. A header-only file has none."
 - Bad: "Events as ingest reads them from EVE."
-- Fix: start with a verb. "Returns `files` with `edit` applied to every EVE file's bytes."
+- Bad, on a type: "The unit and decimals of a dataset column that holds a machine signal."
+- Bad, on a field: "The home time zone." "Each scanned file, sorted by readiness."
+- Bad, a verbless first sentence with a full sentence after it: "The reason identification failed. Only `provider_unavailable` is a server error."
+- Fix: start with a verb. "Returns `files` with `edit` applied to every EVE file's bytes." "Extends `ColumnUnit` with the dataset and column that store a machine signal."
+
+This pattern is the easiest to miss, because a noun phrase is the usual style for a comment on a type, a field, or a constant, and it reads as fine. Check the first sentence of every doc comment by itself, including one-line comments on fields. A later sentence with a verb doesn't excuse a verbless first one. Pick the verb that says what the thing is or does ("Maps", "Extends", "Lists", "Returns"); don't reach for the same stock verb each time.
 
 ## 7. Telegraphese
 
