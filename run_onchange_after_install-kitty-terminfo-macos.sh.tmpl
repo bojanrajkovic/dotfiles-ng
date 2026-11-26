@@ -1,0 +1,31 @@
+#!/bin/bash
+{{ if ne .chezmoi.os "darwin" -}}
+echo "Not macOS, skipping kitty terminfo install"
+exit 0
+{{ end -}}
+
+set -euo pipefail
+
+# kitty sets TERMINFO to its app bundle, so programs started outside kitty
+# (sudo, daemons, GUI apps) fail with "Terminal type xterm-kitty is not
+# defined". Compiling the entry into ~/.terminfo makes it visible to them.
+#
+# run_onchange: the hash below changes when a kitty upgrade ships a new
+# terminfo file. The script runs after install-brew-packages, so kitty exists
+# by the time it runs, but the template renders earlier, hence the stat guard.
+{{ $src := "/Applications/kitty.app/Contents/Resources/kitty/terminfo/kitty.terminfo" -}}
+{{ if stat $src -}}
+# kitty.terminfo sha256: {{ include $src | sha256sum }}
+{{ else -}}
+# kitty.terminfo sha256: kitty not installed yet
+{{ end -}}
+
+src="{{ $src }}"
+if [ ! -f "$src" ]; then
+    echo "kitty not installed, skipping terminfo install"
+    exit 0
+fi
+
+mkdir -p "${HOME}/.terminfo"
+tic -x -o "${HOME}/.terminfo" "$src"
+echo "Installed xterm-kitty terminfo into ~/.terminfo"
