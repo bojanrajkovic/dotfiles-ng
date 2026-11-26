@@ -124,11 +124,10 @@ These are steps to follow whenever we're building new features, fixing bugs, etc
 * Run the /grill-with-docs skill to ask clarifying questions, sharpen the idea, brainstorm
   alternatives, and iterate on the design.
 * Read & explore the code for facts, use documentation as a guidepost.
-* Before writing code for each issue, do a structure review: lay out the files, folders, module
-  boundaries, and where tests and shared test helpers go, as a tree with one line per file, and get
-  my go-ahead.
-* Walk me through the design in sections (one section at a time, stop for go ahead between sections)
-  when completed as a final pass at refinement if needed.
+* Before writing code for each issue, walk me through the design one section at a time, and stop for
+  my go-ahead between sections. Each section says where its pieces land: which module, folder or
+  file, and where tests and shared test helpers go. That way we can catch "should this live here or
+  there?" before any code exists. Describe placement in prose; don't list every file as a tree.
 * Use GitHub's new stacked PR feature to split bigger builds across multiple easy-to-review PRs,
   finer than feels natural, especially UI work: I skim PRs for their shape.
   A stacked PR can't be merged with `gh pr merge` or the REST merge endpoint. Use
@@ -139,6 +138,9 @@ These are steps to follow whenever we're building new features, fixing bugs, etc
 * Run a code review at the appropriate altitude after each change — use the `/code-review` skill's
   patterns. Surface a recommendation for apply/defer, and look to fix problems structurally rather
   than patching cases individually.
+* After the code review, run the `/copyedit` skill in a fresh subagent over the prose the change
+  adds or edits: comments, docs, test names, log messages, and the commit and PR text. Check each
+  finding, apply the ones that hold, and rerun the skill on anything you rewrote.
 * Write/update documentation with the change, don't batch it for later.
 * Use TDD whenever it makes sense to. Tests go where logic can be wrong: parsing, time math,
   security checks, data writes. No tests, fixture cases, or CI steps for trivial wiring or
