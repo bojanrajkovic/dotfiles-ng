@@ -2,11 +2,9 @@
 
 These are sentence-construction habits that make prose read as machine-written. Each pattern has a name, real examples that shipped in drafts, and the fix. A sentence can break several at once, so check each pattern separately.
 
-The test for every sentence: would a careful human engineer say it this way out loud to a colleague? If it sounds like a riddle, a legal clause, or a translation, rewrite it.
-
 ## 1. Negated object
 
-A sentence that hangs its meaning on "no", "none", or "nothing" as the object of a verb. The reader has to build the thing and then cancel it.
+A sentence that uses "no", "none", or "nothing" as the object of its verb. The reader has to build the thing and then cancel it.
 
 - Bad: "The jabberwock admits no slimer."
 - Bad: "Metric attributes still carry none."
@@ -16,7 +14,7 @@ A sentence that hangs its meaning on "no", "none", or "nothing" as the object of
 
 ## 2. Pro-form echo
 
-A second clause that points back at the first with "doing so", "so", "it", "this", "that", "the same", or "one", usually to restate it or give it a cause. Often the first clause is negated, so the echo points at something that never happens.
+A second clause that points back at the first with "doing so", "so", "it", "this", "that", "the same", or "one", usually to restate the first clause or to explain why the first clause is true. Often the first clause is negated, so the echo points at something that never happens.
 
 - Bad: "The jabberwock admits no slimer, and the rule prevents it from doing so."
 - Bad: "Synthetic EVE files now do the same."
@@ -52,17 +50,22 @@ A string of nouns and possessives that names a thing by its relations instead of
 
 ## 6. Verbless description
 
-A doc comment or sentence that's only a noun phrase. It names a value when the reader needs to know what happens.
+A doc comment or sentence that's only a noun phrase. It names a value when the reader needs to know what the code does.
 
 - Bad: "`files` with each EVE file's bytes passed through `edit`."
 - Bad: "One EVE file's annotations. A header-only file has none."
 - Bad: "Events as ingest reads them from EVE."
-- Bad, on a type: "The unit and decimals of a dataset column that holds a machine signal."
-- Bad, on a field: "The home time zone." "Each scanned file, sorted by readiness."
-- Bad, a verbless first sentence with a full sentence after it: "The reason identification failed. Only `provider_unavailable` is a server error."
-- Fix: start with a verb. "Returns `files` with `edit` applied to every EVE file's bytes." "Extends `ColumnUnit` with the dataset and column that store a machine signal."
+- Bad, on a field: "Each scanned file, sorted by readiness." ("Sorted by readiness" describes what code does to the files, so the comment should say which function sorts them.)
+- Fix: start with a verb. "Returns `files` with `edit` applied to every EVE file's bytes."
 
-This pattern is the easiest to miss, because a noun phrase is the usual style for a comment on a type, a field, or a constant, and it reads as fine. Check the first sentence of every doc comment by itself, including one-line comments on fields. A later sentence with a verb doesn't excuse a verbless first one. Pick the verb that says what the thing is or does ("Maps", "Extends", "Lists", "Returns"); don't reach for the same stock verb each time.
+A noun phrase is fine on a type, a field, or a constant when it only says what the value is. These comments are correct:
+
+- On a type: "The unit and decimals of a dataset column that stores a machine signal."
+- On a field: "The home time zone." "The reason identification failed. Only `provider_unavailable` is a server error."
+
+If the comment also says what code does to the value, such as sorting, filtering, or converting it, describe that step in a sentence with a verb.
+
+On a function or method, check the first sentence of every doc comment by itself. A later sentence with a verb doesn't excuse a verbless first one. Pick the verb that says what each function does ("Maps", "Extends", "Lists", "Returns"), and use different verbs across a file.
 
 ## 7. Telegraphese
 
@@ -114,7 +117,7 @@ Two subjects paired with two predicates in one clause, leaving the reader to mat
 
 ## 13. Loose clause chain
 
-Clauses strung together with "which… because… so…" until one sentence carries three ideas (Strunk rule 14).
+Clauses strung together with "which… because… so…" until one sentence contains three ideas (Strunk rule 14).
 
 - Bad: "Ingest skips CSL files, which hold Cheyne-Stokes periods, because airway has no sample CSL file with a period in it, so it can't read one correctly yet."
 - Fix: one idea per sentence.
@@ -157,7 +160,7 @@ An idiom, understatement, or loose verb in place of the plain fact.
 
 ## 19. Literary verb for software
 
-Code described with a verb or noun from human life, where reference documentation has a standard dry term. This is the pattern rewrites break most often, because the literary verb is concrete and active, so it passes patterns 3 and 18.
+Code described with a verb or noun from human life, where reference documentation has a standard dry term. Rewrites break this pattern more often than any other. A literary verb is concrete and active, so a rewrite that uses one fixes patterns 3 and 18 but breaks this one.
 
 - Bad: "The server answers every failure with a JSON body." "airway never answers 401."
 - Bad: "the refusal", "refuses a file with two headers"
@@ -171,7 +174,7 @@ Code described with a verb or noun from human life, where reference documentatio
 Three or more parallel conditions, cases, steps, or fields packed into one sentence or a run of sentences.
 
 - Bad: "A night is ready when its STR day is closed, every EVE file has a full header, each BRP file's size matches its header, and the folder has been quiet for a minute."
-- Fix: a lead-in sentence and a bulleted list, one item per condition. Number the items when order matters. Two items stay a sentence.
+- Fix: a lead-in sentence and a bulleted list, one item per condition. Number the items when order matters. If there are only two items, keep them in one sentence.
 
 ## 21. Unrelated facts joined
 
@@ -179,7 +182,7 @@ Clauses joined with "and", "so", or a semicolon when the second doesn't follow f
 
 - Bad: "The card holds one folder per night, and the header is 256 bytes."
 - Bad: "Sessions are ordered by start, so a note belongs to one night." (The second clause isn't a consequence of the first.)
-- Fix: give each fact its own sentence, in the order the reader needs. Keep "so" and "because" for a real cause. If a fact has no bearing on the code it sits on, cut it (see pattern 23).
+- Fix: give each fact its own sentence, in the order the reader needs. Keep "so" and "because" for a real cause. If a fact is unrelated to the code that the comment documents, cut it (see pattern 23).
 
 ## 22. Coined term
 
@@ -190,10 +193,10 @@ A word the draft invented for a project concept and uses as if the reader knows 
 
 ## 23. Sentence that should be cut
 
-A sentence no rewrite improves, because the reader doesn't need it where it is. Report it with the fix "cut" and no rewrite.
+A sentence that the reader doesn't need where it is. Report it as "cut", without a rewrite.
 
 - It restates what the next line of code, the type, or the name already says. "Reads config from `process.env`." "A metric can't be grouped by."
 - It documents another system's behavior that this code doesn't control. "Only Pomerium answers 401." "The kubelet probes this path."
 - It explains a behavior of some other module, which that module's own comment already covers.
-- It tells a test's reader what the test asserts, in a helper or fixture.
+- In a test helper or fixture, it tells the reader what the test asserts.
 - Fix: cut it. If one clause is worth keeping, keep only that clause.

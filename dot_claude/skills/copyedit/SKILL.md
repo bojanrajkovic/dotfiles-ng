@@ -1,6 +1,6 @@
 ---
 name: copyedit
-description: Copyedits the grammar and sentence construction of prose a person will read (docs, code comments, test names, log messages, commit messages, PR bodies). Catches the tangled, machine-sounding sentences that drafts keep producing, using Elements of Style, Bojan's writing rules, and a list of named grammar patterns. Runs in a fresh subagent and reports each bad sentence with a rewrite. Use before every commit and every PR.
+description: Copyedits the grammar and sentence construction of prose a person will read (docs, code comments, test names, log messages, commit messages, PR bodies). Uses Elements of Style, Bojan's writing rules, and a list of named grammar patterns to find tangled, machine-sounding sentences. Runs in a fresh subagent and reports each bad sentence with a rewrite. Use before every commit and every PR.
 context: fork
 agent: general-purpose
 user-invocable: true
@@ -21,7 +21,7 @@ Read all four before you look at the draft.
 1. `references__elements-of-style.md` in this skill's folder, every line, including section V.
 2. The `# Writing Rules` section of `~/.claude/CLAUDE.md`, through the end of its `## Positive Examples`.
 3. `references__technical-audience.md` in this skill's folder.
-4. `references__patterns.md` in this skill's folder, which names 23 patterns and gives real bad examples and fixes for each.
+4. `references__patterns.md` in this skill's folder, which lists 23 patterns, each with bad examples from real drafts and a fix.
 
 ## 2. Check every sentence
 
@@ -30,9 +30,14 @@ Go through the draft one sentence at a time. Treat each doc comment, code commen
 1. Read it aloud in your head. Does it sound like a person talking, or like a riddle, a contract, or a translation?
 2. Find the subject and the verb. Is the subject the thing that really acts? Is the verb concrete, or is it "admits", "carries", "gets", "gives", or "holds"?
 3. Walk the patterns list from 1 to 23, and ask whether the sentence matches each one. Patterns 1 to 3 (negated object, pro-form echo, abstract verb on a thing) are the most common in prose, so look hardest at those. In code, pattern 6 (verbless description) is as common: check it on every doc comment, one comment at a time, before you move to the next file.
-4. Check it against Elements of Style: active voice, positive form, concrete words, needless words, related words kept together.
-5. Ask whether the reader needs the sentence here at all. If it matches pattern 23, the fix is to cut it.
-6. If you can't tell what the sentence means, read the code it describes before you rewrite it. A rewrite of a sentence you don't understand keeps the confusion.
+4. Check it against these Elements of Style rules:
+   - Use the active voice.
+   - Put statements in positive form.
+   - Use concrete language.
+   - Omit needless words.
+   - Keep related words together.
+5. Ask whether the reader needs the sentence here at all. If not, report "cut" (pattern 23).
+6. If you can't tell what the sentence means, read the code it describes before you rewrite it. If you rewrite a sentence you don't understand, the rewrite will be just as confusing.
 
 ## 3. Report
 
