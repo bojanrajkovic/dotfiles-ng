@@ -1,15 +1,13 @@
----
-name: writing-for-a-technical-audience
-description: Use when writing documentation, guides, API references, or technical content for developers - enforces clarity, conciseness, and authenticity while avoiding AI writing patterns that signal inauthenticity
-user-invocable: false
----
+<!-- This file is a verbatim copy of the writing-for-a-technical-audience skill in ed3d-plugins:
+https://github.com/ed3dai/ed3d-plugins/blob/main/plugins/ed3d-house-style/skills/writing-for-a-technical-audience/SKILL.md
+Update it from that source instead of editing it here. -->
 
 # Writing for a Technical Audience
 
 ## Overview
 
 **Core principle:** Technical writing must be clear, concise, and authentic. Clarity and technical depth are not opposites - you can have both. Avoid AI writing patterns that make content feel robotic or inauthentic.
-￼
+
 **Why this matters:** Developers value their time. Clear documentation builds trust. AI-like writing patterns (identified through research) make content feel generic and untrustworthy. Technical depth without clarity frustrates users. Clarity without depth leaves them stuck.
 
 ## When to Use
