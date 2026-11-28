@@ -16,12 +16,17 @@ The caller names what to check in the arguments: a `git diff` range or `--cached
 
 ## 1. Read the rules first, in full
 
-Read all four before you look at the draft.
+You MUST read every line of all four sources before you look at the draft. Skimming, reading only the sections you expect to need, sampling a few patterns, or searching a file for keywords doesn't count. Most findings come from rules you won't know to look for until you've read them.
 
-1. `references__elements-of-style.md` in this skill's folder, every line, including section V.
+1. `references__elements-of-style.md` in this skill's folder, including section V. It's about 1,000 lines.
 2. The `# Writing Rules` section of `~/.claude/CLAUDE.md`, through the end of its `## Positive Examples`.
 3. `references__technical-audience.md` in this skill's folder.
 4. `references__patterns.md` in this skill's folder, which lists 28 sentence patterns and 2 paragraph patterns, each with bad examples and a fix.
+
+Read each file from its first line to its last. If a read returns only part of a file, keep reading until you reach the end.
+
+Start your report with the last line of each of the four sources, quoted exactly. For `CLAUDE.md`, quote the last line of `## Positive Examples`. If you can't quote a last line, you haven't finished that source: go back and read the rest before you check the draft.
+
 ## 2. Check every sentence
 
 Go through the draft one sentence at a time. Treat each doc comment, code comment, test name, and log message as a sentence too. For each one:
@@ -51,7 +56,7 @@ Rewriting sentences one at a time tends to make them all the same length, so che
 
 ## 4. Report
 
-For each bad sentence or paragraph, give:
+Open with the four quoted last lines from step 1. Then, for each bad sentence or paragraph, give:
 
 - the file and the exact quoted sentence, or the whole paragraph for patterns 29 and 30;
 - the pattern name, or the Elements of Style rule it breaks;
