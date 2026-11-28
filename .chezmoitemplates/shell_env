@@ -21,6 +21,12 @@ export EDITOR="emacsclient -a nano"
 {{ if eq .chezmoi.os "darwin" -}}
 # colima's docker socket isn't at the default /var/run/docker.sock path.
 export DOCKER_HOST="unix://$HOME/.colima/default/docker.sock"
+
+# Hermes's build.sh signs dev builds with this identity. Every dev build then
+# satisfies the release app's designated requirement, so the Keychain stops
+# prompting each new build for the relay token. build.sh falls back to ad hoc on a
+# Mac without the certificate.
+export DEV_IDENTITY="Developer ID Application: Bojan Rajkovic (FP2BC7CW97)"
 {{ end -}}
 
 # Only use uv-managed Python
