@@ -1,6 +1,6 @@
 # Grammar patterns to catch
 
-These are sentence-construction habits that make prose read as machine-written. Each pattern has a name, real examples that shipped in drafts, and the fix. A sentence can break several at once, so check each pattern separately.
+These are sentence-construction habits that make prose read as machine-written. Each pattern has a name, bad examples (most from real drafts), and the fix. Patterns 1 to 28 apply to single sentences, and patterns 29 and 30 apply to paragraphs. A sentence can break several patterns at once, so check each pattern separately.
 
 ## 1. Negated object
 
@@ -139,10 +139,14 @@ A lead-in, a colon, then the real content, as a reveal.
 
 ## 16. Corrective antithesis
 
-"X, not Y", or "not X but Y", where nobody claimed Y.
+A contrast with a claim nobody made: "X, not Y", "not X but Y", "Y rather than X", or "not only X but also Y". The contrast can span two sentences: "It isn't a cache. It's a lookup table."
 
 - Bad: "A config check, not a gate."
-- Fix: say what X is and does.
+- Bad: "Rather than adding a new parser, this reuses the existing one."
+- Bad: "The fix improves not only latency but also memory use."
+- Fix: say what X is and does. "This reuses the existing parser." "The fix cuts latency and memory use."
+
+Keep the contrast when the reader would otherwise assume Y, such as a common misreading of an API.
 
 ## 17. Denial sentence
 
@@ -200,3 +204,75 @@ A sentence that the reader doesn't need where it is. Report it as "cut", without
 - It explains a behavior of some other module, which that module's own comment already covers.
 - In a test helper or fixture, it tells the reader what the test asserts.
 - Fix: cut it. If one clause is worth keeping, keep only that clause.
+
+## 24. Copula avoidance
+
+"Serves as", "acts as", "functions as", "stands as", "features", or "offers" where "is" or "has" says the same thing. AI copyeditors make this swap to sound formal, so check your own rewrites for it too.
+
+- Bad: "This module serves as the entry point for the CLI."
+- Bad: "The config object features three sections."
+- Fix: "This module is the CLI's entry point." "The config object has three sections."
+
+"Acts as" is fine when one thing stands in for another: "The stub acts as the server in tests."
+
+## 25. Trailing "-ing" analysis
+
+A participial phrase that ends a sentence and says why the main clause matters: ", ensuring…", ", allowing…", ", making…", ", enabling…", ", highlighting…". The phrase claims a benefit without saying how the code delivers it, and the reader can't tell what does the ensuring or allowing.
+
+- Bad: "Adds a retry to the upload, ensuring requests succeed under load."
+- Bad: "Caches the parsed header, making later reads faster."
+- Fix: cut the phrase, or give the effect its own clause with a real subject. "Retries the upload once, so one dropped connection doesn't fail the import." "Caches the parsed header so `readNight` parses it once."
+
+## 26. Change-summary boilerplate
+
+In a commit message or PR body, a sentence that says in general terms what the change kept, avoided, or improved, instead of what it changed. Watch for "preserves", "retains", "keeps the existing", "avoids", "ensures", "improves clarity", "improves consistency", "improves readability", and "addresses review feedback".
+
+- Bad: "Refactors the parser for clarity while preserving existing behavior."
+- Bad: "Addresses review feedback."
+- Bad: "Improves consistency and readability of the docs."
+- Fix: name what changed. "Splits `parse` into `tokenize` and `build`." "Renames `ctx` to `night` in `score.ts`."
+
+In a refactor, one plain sentence that says behavior is unchanged is fine, because the reviewer needs to know it.
+
+## 27. Vague connection
+
+"Associated with", "in connection with", "related to", "linked to", or "tied to" where the draft could state the relationship.
+
+- Bad: "the token associated with the session"
+- Bad: "errors related to the EVE parser"
+- Fix: say what the relationship is. "the token that `login` issued for the session", "errors that the EVE parser throws".
+
+When the fix is a possessive, check it for pattern 5 (noun pile).
+
+## 28. Reflexive triad
+
+Three adjectives, nouns, or short phrases in a row, added to make a claim sound complete. Often the draft supports only one of the items.
+
+- Bad: "The new loader is faster, safer, and simpler."
+- Bad: "Improves reliability, observability, and maintainability."
+- Fix: keep the items you can support, and give the fact for each. "The new loader reads the header once instead of three times."
+
+Three distinct items that each state a fact are fine. Pattern 20 says when three or more items belong in a bulleted list.
+
+# Paragraph patterns
+
+These patterns appear only across several sentences, so check them on a whole paragraph, doc comment block, or commit or PR body.
+
+## 29. Elegant variation
+
+Two or more words for the same thing in one draft, so the reader wonders whether they're different things.
+
+- Bad: "night", then "session", then "recording", all for one `Night`.
+- Bad: "The handler validates the token. If the credential has expired, it returns 401."
+- Fix: pick one word, usually the name the code uses, and repeat it.
+
+A pronoun for a noun in the same sentence is fine (see pattern 8).
+
+## 30. Even rhythm
+
+Four or more consecutive sentences of about the same length that use only periods and commas. Each sentence can be clean on its own, but the paragraph still reads as machine-written. The writing rules ask for short sentences, so writers who follow them often make every sentence the same short length.
+
+- Bad: "The loader reads every EVE file in the night's folder. It parses the header before it reads any annotations. Each annotation becomes one row in the events table. The rows are sorted by onset before the loader returns them."
+- Fix: combine sentences that share a subject, or let one sentence run longer to carry the detail. "The loader reads every EVE file in the night's folder. For each file, it parses the header and then turns every annotation into a row in the events table. It sorts all the rows by onset before it returns them."
+
+Report the whole paragraph with a rewrite. Don't fix this pattern by chaining clauses into one long sentence (pattern 13).
