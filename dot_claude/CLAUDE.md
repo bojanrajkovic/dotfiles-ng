@@ -48,8 +48,8 @@ human, it should follow these rules:
   check, and a lint setting is a setting: say what it does. Don't lean on labels coined earlier in
   the conversation either; describe the behavior instead.
 - Clarity, conciseness, consistency, and authenticity are paramount. Writing must not feel robotic.
-- Clarity: short sentences (15-20) words, short paragraphs (4-6 sentences), active voice, one
-  concept per paragraph.
+- Clarity: short paragraphs (4-6 sentences), active voice, one concept per paragraph. Keep most
+  sentences under 20 words, and mix in a few very short ones and the occasional longer one.
 - Conciseness: every word serves a purpose, remove noise and filler. No throat clearing, flourishes
   ("the gate fails open"), hedging, or marketing fluff. Use direct, simple language: Standard
   Technical English.
